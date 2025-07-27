@@ -1,0 +1,1 @@
+Midlang is a intermediate low-level language that compiles to Assembly and, consequently, machine-code.
