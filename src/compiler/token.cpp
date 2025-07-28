@@ -8,7 +8,27 @@ bool Token::isKeyword(const std::string& keyword) noexcept
 }
 
 
+bool Token::isBoolean(const std::string& boolean) noexcept
+{
+    return boolean == "true" || boolean == "false";
+}
+
+
+bool Token::stringToBoolean(const std::string& boolean) noexcept
+{
+    return boolean == "true" ? true : false;
+}
+
+
+
+
 bool Token::isKeyword() const noexcept
 {
     return Token::isKeyword(lexeme);
+}
+
+
+bool Token::isBoolean() const noexcept
+{
+    return Token::isBoolean(lexeme);
 }

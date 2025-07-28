@@ -7,7 +7,7 @@
 
 enum class TokenType
 {
-    Attribute, Colon, Arrow,
+    Attribute, SemiColon, Colon, Arrow,
 
     Plus, Minus, Star, Slash, Equal,
     ParenLeft, ParenRight,
@@ -21,6 +21,14 @@ enum class TokenType
 
     KwDeclare,
     KwStart, KwEnd, KwFunction, KwReturn,
+};
+
+
+struct TokenPosition
+{
+    unsigned int start;
+    unsigned int end;
+    unsigned int line;
 };
 
 
@@ -47,13 +55,15 @@ struct Token
 
 
     static bool isKeyword(const std::string& keyword) noexcept;
+    static bool isBoolean(const std::string& boolean) noexcept;
+    static bool stringToBoolean(const std::string& boolean) noexcept;
 
 
     bool isKeyword() const noexcept;
+    bool isBoolean() const noexcept;
 
 
     std::string lexeme;
-    unsigned int start;
-    unsigned int end;
+    TokenPosition position;
     TokenType type;
 };

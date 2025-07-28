@@ -34,6 +34,7 @@ void Scanner::scanToken()
     {
     case '@': addToken(TokenType::Attribute); break;
     case ':': addToken(TokenType::Colon); break;
+    case ';': addToken(TokenType::SemiColon); break;
     case '-': addToken((advance() == '>' ? TokenType::Arrow : TokenType::Minus)); break;
     case '+': addToken(TokenType::Plus); break;
     case '*': addToken(TokenType::Star); break;
@@ -62,7 +63,7 @@ void Scanner::scanToken()
 
 void Scanner::addToken(const TokenType type) noexcept
 {
-    _tokens.push_back(Token{ getSourceCurrentSubstring(), _start, _end, type });
+    _tokens.push_back(Token{ getSourceCurrentSubstring(), _position, type });
 }
 
 
@@ -90,6 +91,10 @@ void Scanner::identifier() noexcept
 
     if (Token::isKeyword(currentSubstring))
         addToken(Token::keywords.at(currentSubstring));
+
+    else if (Token::isBoolean(currentSubstring))
+        addToken(TokenType::Value);
+
     else
         addToken(TokenType::Identifier);
 }

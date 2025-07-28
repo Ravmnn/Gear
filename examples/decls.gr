@@ -1,0 +1,2 @@
+decl number: int16 = 123;
+decl boolean: bool = true;

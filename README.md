@@ -1,1 +1,1 @@
-Midlang is a intermediate low-level language that compiles to Assembly and, consequently, machine-code.
+Gear is a low-level imperative programming language that compiles to assembly and, consequently, machine-code.

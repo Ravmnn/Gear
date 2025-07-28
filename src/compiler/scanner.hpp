@@ -15,12 +15,13 @@ private:
     std::vector<Token> _tokens;
 
     std::string _source;
+    TokenPosition _position; // TODO: update this
     unsigned int _start;
     unsigned int _end;
 
 
 public:
-    Scanner(const std::string& source) noexcept;
+    explicit Scanner(const std::string& source) noexcept;
 
 
     std::vector<Token> scan();
