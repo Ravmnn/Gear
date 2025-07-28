@@ -1,0 +1,28 @@
+@entrypoint: main;
+
+
+function sumtwo: int16 number -> int16
+start
+    return number + 2;
+end
+
+
+# this is a comment
+#>
+this is a multiline comment
+<#
+
+
+function main -> int16
+start
+    decl number1: int16 = 10;
+    decl number2: int16 = 25;
+
+    number2 = number2 + number1 * 5 - 7;
+
+    decl result: int16 = sumtwo(1234);
+
+    return 0;
+end
+
+#> another comment <#  
