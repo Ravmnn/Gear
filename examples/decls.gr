@@ -1,5 +1,13 @@
-decl number: int16 = 10;
-decl result: int16 = 5 * number + 20 * 5;
+@entrypoint = main;
 
 
-(1 + 2 / 7);
+function main -> int16
+start
+    decl number: int16 = 10;
+    decl result: int16 = 5 * number + 20 * 5;
+
+
+    (1 + 2 / 7);
+
+    return 0;
+end

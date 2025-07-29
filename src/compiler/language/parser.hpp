@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include <compiler/token.hpp>
+#include <compiler/language/token.hpp>
 
 
 
@@ -28,6 +28,7 @@ public:
 
 private:
     Statement* declaration();
+    Statement* attributeDeclaration();
     Statement* variableDeclaration();
 
     Statement* statement();

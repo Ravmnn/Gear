@@ -2,7 +2,7 @@
 
 #include <sstream>
 
-#include <compiler/token.hpp>
+#include <compiler/language/token.hpp>
 #include <gear.hpp>
 
 

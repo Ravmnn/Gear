@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include <compiler/token.hpp>
+#include <compiler/language/token.hpp>
 
 
 

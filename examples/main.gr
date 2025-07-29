@@ -1,4 +1,4 @@
-@entrypoint: main;
+@entrypoint = main;
 
 
 function sumtwo: int16 number -> int16

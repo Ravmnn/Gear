@@ -2,8 +2,8 @@
 
 #include <sstream>
 
-#include <compiler/expression.hpp>
-#include <compiler/statement.hpp>
+#include <compiler/language/expression.hpp>
+#include <compiler/language/statement.hpp>
 
 
 
@@ -21,6 +21,7 @@ public:
 
 
 private:
+    void processCompilerAttribute(const CompilerAttributeStatement& statement) override;
     void processExpression(const ExpressionStatement& statement) override;
     void processDeclaration(const DeclarationStatement& statement) override;
 

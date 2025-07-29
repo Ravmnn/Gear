@@ -1,7 +1,7 @@
-#include <compiler/scanner.hpp>
+#include <compiler/language/scanner.hpp>
 
-#include <compiler/token.hpp>
 #include <compiler/exceptions/exceptions.hpp>
+#include <compiler/language/token.hpp>
 #include <gear.hpp>
 
 

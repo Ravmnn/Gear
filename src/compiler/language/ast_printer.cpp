@@ -1,4 +1,4 @@
-#include <compiler/ast_printer.hpp>
+#include <compiler/language/ast_printer.hpp>
 
 
 
@@ -13,6 +13,12 @@ std::string ASTPrinter::print(const std::vector<Statement*>& statements) noexcep
     return _stream.str();
 }
 
+
+
+void ASTPrinter::processCompilerAttribute(const CompilerAttributeStatement& statement)
+{
+    _stream << '@' << statement.name.lexeme << " = " << statement.value.lexeme;
+}
 
 
 void ASTPrinter::processExpression(const ExpressionStatement& statement)

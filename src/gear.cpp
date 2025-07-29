@@ -2,10 +2,10 @@
 
 #include <iostream>
 
-#include <compiler/token.hpp>
-#include <compiler/scanner.hpp>
-#include <compiler/parser.hpp>
-#include <compiler/ast_printer.hpp>
+#include <compiler/language/token.hpp>
+#include <compiler/language/scanner.hpp>
+#include <compiler/language/parser.hpp>
+#include <compiler/language/ast_printer.hpp>
 #include <compiler/exceptions/exception_formatting.hpp>
 #include <compiler/exceptions/scanner_exception.hpp>
 #include <compiler/exceptions/parser_exception.hpp>

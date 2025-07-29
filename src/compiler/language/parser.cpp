@@ -1,7 +1,7 @@
-#include <compiler/parser.hpp>
+#include <compiler/language/parser.hpp>
 
-#include <compiler/statement.hpp>
-#include <compiler/expression.hpp>
+#include <compiler/language/statement.hpp>
+#include <compiler/language/expression.hpp>
 #include <compiler/exceptions/exceptions.hpp>
 #include <gear.hpp>
 
@@ -39,11 +39,26 @@ Statement* Parser::declaration()
 {
     switch (peek().type)
     {
+    case TokenType::Attribute: return attributeDeclaration();
     case TokenType::KwDeclare: return variableDeclaration();
 
     default:
         return statement();
     };
+}
+
+
+Statement* Parser::attributeDeclaration()
+{
+    advance();
+
+    const Token name = expect(TokenType::Identifier, gear_e2001(previous().position));
+    expect(TokenType::Equal, gear_e2004(previous().position));
+    const Token value = expect(TokenType::Value, gear_e2007(previous().position));
+
+    expectEndOfStatement();
+
+    return new CompilerAttributeStatement(name, value);
 }
 
 

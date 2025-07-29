@@ -21,22 +21,22 @@ ParserException gear_e2000(const TokenPosition& position) noexcept
 
 ParserException gear_e2001(const TokenPosition& position) noexcept
 {
-    return ParserException(1, "Expect variable name after \"decl\" keyword.", position);
+    return ParserException(1, "Expect identifier.", position);
 }
 
 ParserException gear_e2002(const TokenPosition& position) noexcept
 {
-    return ParserException(2, "Expect type specifier (\":\") after variable name.", position);
+    return ParserException(2, "Expect type specifier.", position);
 }
 
 ParserException gear_e2003(const TokenPosition& position) noexcept
 {
-    return ParserException(3, "Expect type name after type specifier.", position);
+    return ParserException(3, "Expect type name.", position);
 }
 
 ParserException gear_e2004(const TokenPosition& position) noexcept
 {
-    return ParserException(4, "Expect assignment operator (\"=\") after variable type.", position);
+    return ParserException(4, "Expect assignment operator.", position);
 }
 
 ParserException gear_e2005(const TokenPosition& position) noexcept
@@ -47,4 +47,9 @@ ParserException gear_e2005(const TokenPosition& position) noexcept
 ParserException gear_e2006(const TokenPosition& position) noexcept
 {
     return ParserException(6, "Expect expression.", position);
+}
+
+ParserException gear_e2007(const TokenPosition& position) noexcept
+{
+    return ParserException(7, "Expect compile-time expression.", position);
 }

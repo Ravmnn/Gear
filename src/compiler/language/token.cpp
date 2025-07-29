@@ -1,4 +1,4 @@
-#include <compiler/token.hpp>
+#include <compiler/language/token.hpp>
 
 #include <algorithm>
 

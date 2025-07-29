@@ -1,4 +1,16 @@
-#include <compiler/statement.hpp>
+#include <compiler/language/statement.hpp>
+
+
+
+CompilerAttributeStatement::CompilerAttributeStatement(const Token& name, const Token& value) noexcept
+    : name(name), value(value)
+{}
+
+
+void CompilerAttributeStatement::process(StatementProcessor& processor) const
+{
+    processor.processCompilerAttribute(*this);
+}
 
 
 
