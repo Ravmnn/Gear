@@ -1,2 +1,5 @@
 decl number: int16 = 10;
-decl result: int16 = number + 20 * 5;
+decl result: int16 = 5 * number + 20 * 5;
+
+
+(1 + 2 / 7);

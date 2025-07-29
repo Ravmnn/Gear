@@ -23,7 +23,7 @@ public:
 class Statement
 {
 public:
-    virtual void process(StatementProcessor& processor) = 0;
+    virtual void process(StatementProcessor& processor) const = 0;
 };
 
 
@@ -37,7 +37,7 @@ public:
     const Expression* const expression;
 
 
-    void process(StatementProcessor& processor) override;
+    void process(StatementProcessor& processor) const override;
 };
 
 
@@ -53,5 +53,5 @@ public:
     const Expression* const value;
 
 
-    void process(StatementProcessor& processor) override;
+    void process(StatementProcessor& processor) const override;
 };

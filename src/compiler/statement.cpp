@@ -7,7 +7,7 @@ ExpressionStatement::ExpressionStatement(const Expression* const expression) noe
 {}
 
 
-void ExpressionStatement::process(StatementProcessor& processor)
+void ExpressionStatement::process(StatementProcessor& processor) const
 {
     processor.processExpression(*this);
 }
@@ -19,7 +19,7 @@ DeclarationStatement::DeclarationStatement(const Token& name, const Token& type,
 {}
 
 
-void DeclarationStatement::process(StatementProcessor& processor)
+void DeclarationStatement::process(StatementProcessor& processor) const
 {
     processor.processDeclaration(*this);
 }

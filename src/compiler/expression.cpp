@@ -7,7 +7,7 @@ LiteralExpression::LiteralExpression(const Token& value) noexcept
 {}
 
 
-void LiteralExpression::process(ExpressionProcessor& processor)
+void LiteralExpression::process(ExpressionProcessor& processor) const
 {
     processor.processLiteral(*this);
 }
@@ -19,7 +19,7 @@ BinaryExpression::BinaryExpression(const Expression* const left, const Token& op
 {}
 
 
-void BinaryExpression::process(ExpressionProcessor& processor)
+void BinaryExpression::process(ExpressionProcessor& processor) const
 {
     processor.processBinary(*this);
 }
@@ -31,7 +31,7 @@ GroupingExpression::GroupingExpression(const Expression* const expression) noexc
 {}
 
 
-void GroupingExpression::process(ExpressionProcessor& processor)
+void GroupingExpression::process(ExpressionProcessor& processor) const
 {
     processor.processGrouping(*this);
 }
@@ -43,7 +43,7 @@ IdentifierExpression::IdentifierExpression(const Token& identifier) noexcept
 {}
 
 
-void IdentifierExpression::process(ExpressionProcessor& processor)
+void IdentifierExpression::process(ExpressionProcessor& processor) const
 {
     processor.processIdentifier(*this);
 }

@@ -13,6 +13,7 @@ class Gear
 {
 private:
     static std::string s_source;
+    static bool s_failed;
 
 
 public:
@@ -25,6 +26,8 @@ public:
 
     static void compile(const std::string& source);
 
+
+    static bool failed() noexcept;
 
     static void error(const std::string& message) noexcept;
     static void error(const ScannerException& exception) noexcept;

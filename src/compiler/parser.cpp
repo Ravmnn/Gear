@@ -77,7 +77,10 @@ Statement* Parser::statement()
 
 Statement* Parser::expressionStatement()
 {
-    return new ExpressionStatement(expression());
+    Expression* const expression = this->expression();
+    expectEndOfStatement();
+
+    return new ExpressionStatement(expression);
 }
 
 

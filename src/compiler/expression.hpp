@@ -24,7 +24,7 @@ public:
 class Expression
 {
 public:
-    virtual void process(ExpressionProcessor& processor) = 0;
+    virtual void process(ExpressionProcessor& processor) const = 0;
 };
 
 
@@ -38,7 +38,7 @@ public:
     Token value;
 
 
-    void process(ExpressionProcessor& processor) override;
+    void process(ExpressionProcessor& processor) const override;
 };
 
 
@@ -54,7 +54,7 @@ public:
     const Expression* const right;
 
 
-    void process(ExpressionProcessor& processor) override;
+    void process(ExpressionProcessor& processor) const override;
 };
 
 
@@ -68,7 +68,7 @@ public:
     const Expression* const expression;
 
 
-    void process(ExpressionProcessor& processor) override;
+    void process(ExpressionProcessor& processor) const override;
 };
 
 
@@ -82,5 +82,5 @@ public:
     Token identifier;
 
 
-    void process(ExpressionProcessor& processor) override;
+    void process(ExpressionProcessor& processor) const override;
 };
