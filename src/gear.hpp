@@ -5,6 +5,10 @@
 
 
 
+class ScannerException;
+class ParserException;
+
+
 class Gear
 {
 private:
@@ -23,4 +27,6 @@ public:
 
 
     static void error(const std::string& message) noexcept;
+    static void error(const ScannerException& exception) noexcept;
+    static void error(const ParserException& exception) noexcept;
 };

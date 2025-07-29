@@ -2,9 +2,7 @@
 
 #include <compiler/token.hpp>
 #include <compiler/exceptions/exceptions.hpp>
-
-#include <iostream>
-
+#include <gear.hpp>
 
 
 Scanner::Scanner(const std::string& source) noexcept
@@ -21,9 +19,16 @@ std::vector<Token> Scanner::scan()
 
     while (!atEnd())
     {
-        _start = _end;
-        _positionInFile.start = _positionInFile.end;
-        scanToken();
+        try
+        {
+            _start = _end;
+            _positionInFile.start = _positionInFile.end;
+            scanToken();
+        }
+        catch (const ScannerException& exception)
+        {
+            Gear::error(exception);
+        }
     }
 
     return _tokens;

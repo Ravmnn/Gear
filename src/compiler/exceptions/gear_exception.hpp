@@ -29,4 +29,8 @@ public:
 
 
     const char* what() const noexcept override;
+
+
+protected:
+    std::string formatExceptionInfo() const noexcept;
 };

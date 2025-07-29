@@ -7,6 +7,7 @@
 
 
 class Statement;
+class Expression;
 class ParserException;
 
 
@@ -30,7 +31,17 @@ private:
     Statement* variableDeclaration();
 
     Statement* statement();
+    Statement* expressionStatement();
 
+    Expression* expression();
+    Expression* term();
+    Expression* factor();
+    Expression* primary();
+
+    Expression* parseGroupExpression();
+
+
+    void synchronize() noexcept;
 
 
 

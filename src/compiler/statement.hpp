@@ -5,14 +5,17 @@
 #include <compiler/token.hpp>
 
 
+class Expression;
 
+class ExpressionStatement;
 class DeclarationStatement;
 
 
 class StatementProcessor
 {
 public:
-    virtual void processDeclaration(DeclarationStatement& statement) = 0;
+    virtual void processExpression(const ExpressionStatement& statement) = 0;
+    virtual void processDeclaration(const DeclarationStatement& statement) = 0;
 };
 
 
@@ -25,15 +28,29 @@ public:
 
 
 
+class ExpressionStatement : public Statement
+{
+public:
+    explicit ExpressionStatement(const Expression* expression) noexcept;
+
+
+    const Expression* const expression;
+
+
+    void process(StatementProcessor& processor) override;
+};
+
+
+
 class DeclarationStatement : public Statement
 {
 public:
-    DeclarationStatement(const Token& name, const Token& type, const Token& value) noexcept;
+    DeclarationStatement(const Token& name, const Token& type, const Expression* value) noexcept;
 
 
     Token name;
     Token type;
-    Token value;
+    const Expression* const value;
 
 
     void process(StatementProcessor& processor) override;

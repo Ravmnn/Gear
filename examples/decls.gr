@@ -1,7 +1,2 @@
-decl number: int16 = 123;
-asdf ads ->
-decl #> boolean: bool = true;
-adssdf
-
-
-asdfasdfsdfsd
+decl number: int16 = 10;
+decl result: int16 = number + 20 * 5;

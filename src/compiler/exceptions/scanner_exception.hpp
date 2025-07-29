@@ -19,4 +19,7 @@ public:
 
 
     const TokenPosition& position() const noexcept;
+
+
+    std::string format() const noexcept;
 };

@@ -41,5 +41,10 @@ ParserException gear_e2004(const TokenPosition& position) noexcept
 
 ParserException gear_e2005(const TokenPosition& position) noexcept
 {
-    return ParserException(4, "Expect variable value after assignment operator (\"=\").", position);
+    return ParserException(5, "Unclosed grouping expression.", position);
+}
+
+ParserException gear_e2006(const TokenPosition& position) noexcept
+{
+    return ParserException(6, "Expect expression.", position);
 }
