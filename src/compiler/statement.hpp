@@ -6,6 +6,9 @@
 
 
 
+class DeclarationStatement;
+
+
 class StatementProcessor
 {
 public:

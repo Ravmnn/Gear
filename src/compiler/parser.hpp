@@ -7,6 +7,7 @@
 
 
 class Statement;
+class ParserException;
 
 
 class Parser
@@ -35,6 +36,9 @@ private:
 
     void reset() noexcept;
 
+
+    const Token& expect(TokenType token, const ParserException& exception);
+    const Token& expectEndOfStatement();
 
     bool match(const std::vector<TokenType>& tokens) noexcept;
     bool check(TokenType token) const noexcept;

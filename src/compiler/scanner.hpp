@@ -3,10 +3,8 @@
 #include <string>
 #include <vector>
 
+#include <compiler/token.hpp>
 
-
-struct Token;
-enum class TokenType;
 
 
 class Scanner
@@ -15,7 +13,7 @@ private:
     std::vector<Token> _tokens;
 
     std::string _source;
-    TokenPosition _position; // TODO: update this
+    TokenPosition _positionInFile;
     unsigned int _start;
     unsigned int _end;
 
@@ -37,16 +35,19 @@ private:
 
     void reset() noexcept;
 
+    void nextLine() noexcept;
+
 
     void identifier() noexcept;
     void value() noexcept;
 
     void comment() noexcept;
-    void multilineComment() noexcept;
+    void multilineComment();
 
 
     char advance() noexcept;
     char peek() const noexcept;
     char peekNext() const noexcept;
+    bool match(char ch) noexcept;
     bool atEnd() const noexcept;
 };

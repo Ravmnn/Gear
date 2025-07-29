@@ -2,12 +2,24 @@
 
 
 
-GearException::GearException(const std::string& message) noexcept
-    : _message(message)
+GearException::GearException(const unsigned int section, const unsigned int id, const std::string& message) noexcept
+    : m_message(message), m_section(section), m_id(id)
 {}
+
+
+const std::string& GearException::message() const noexcept
+{
+    return m_message;
+}
+
+
+unsigned int GearException::id() const noexcept
+{
+    return m_id;
+}
 
 
 const char* GearException::what() const noexcept
 {
-    return _message.c_str();
+    return m_message.c_str();
 }

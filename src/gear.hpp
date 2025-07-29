@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 
 
@@ -11,8 +12,15 @@ private:
 
 
 public:
+    Gear() = delete;
+
+
     static const std::string& source() noexcept;
+    static const std::vector<std::string> sourceAsLines() noexcept;
 
 
     static void compile(const std::string& source);
+
+
+    static void error(const std::string& message) noexcept;
 };

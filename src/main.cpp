@@ -7,7 +7,7 @@
 
 int main(int argc, char** argv)
 {
-    const std::string source = readFile("examples/main.gr");
+    const std::string source = readFile("examples/decls.gr");
 
     Gear::compile(source);
 

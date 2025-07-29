@@ -1,6 +1,9 @@
 #include <compiler/scanner.hpp>
 
 #include <compiler/token.hpp>
+#include <compiler/exceptions/exceptions.hpp>
+
+#include <iostream>
 
 
 
@@ -19,6 +22,7 @@ std::vector<Token> Scanner::scan()
     while (!atEnd())
     {
         _start = _end;
+        _positionInFile.start = _positionInFile.end;
         scanToken();
     }
 
@@ -32,10 +36,15 @@ void Scanner::scanToken()
 
     switch (current)
     {
+    case ' ':
+    case '\t':
+    case '\n':
+        break;
+
     case '@': addToken(TokenType::Attribute); break;
     case ':': addToken(TokenType::Colon); break;
     case ';': addToken(TokenType::SemiColon); break;
-    case '-': addToken((advance() == '>' ? TokenType::Arrow : TokenType::Minus)); break;
+    case '-': addToken((match('>') ? TokenType::Arrow : TokenType::Minus)); break;
     case '+': addToken(TokenType::Plus); break;
     case '*': addToken(TokenType::Star); break;
     case '/': addToken(TokenType::Slash); break;
@@ -44,7 +53,7 @@ void Scanner::scanToken()
     case ')': addToken(TokenType::ParenRight); break;
 
     case '#':
-        if (peek() == '>')
+        if (match('>'))
             multilineComment();
         else
             comment();
@@ -57,13 +66,16 @@ void Scanner::scanToken()
 
         else if (isdigit(current))
             value();
+
+        else
+            throw gear_e1000(_positionInFile);
     };
 }
 
 
 void Scanner::addToken(const TokenType type) noexcept
 {
-    _tokens.push_back(Token{ getSourceCurrentSubstring(), _position, type });
+    _tokens.push_back(Token{ getSourceCurrentSubstring(), _positionInFile, type });
 }
 
 
@@ -77,7 +89,15 @@ std::string Scanner::getSourceCurrentSubstring() const noexcept
 void Scanner::reset() noexcept
 {
     _start = _end = 0;
+    _positionInFile = TokenPosition{ .start = 0, .end = 0, .line = 1 };
     _tokens.clear();
+}
+
+
+void Scanner::nextLine() noexcept
+{
+    _positionInFile.start = _positionInFile.end = 0;
+    _positionInFile.line++;
 }
 
 
@@ -91,6 +111,9 @@ void Scanner::identifier() noexcept
 
     if (Token::isKeyword(currentSubstring))
         addToken(Token::keywords.at(currentSubstring));
+
+    else if (Token::isType(currentSubstring))
+        addToken(TokenType::Type);
 
     else if (Token::isBoolean(currentSubstring))
         addToken(TokenType::Value);
@@ -117,12 +140,15 @@ void Scanner::comment() noexcept
 }
 
 
-void Scanner::multilineComment() noexcept
+void Scanner::multilineComment()
 {
-    advance(); // advance ">" from "#>"
+    const TokenPosition startPosition = _positionInFile;
 
     while ((peek() != '<' || peekNext() != '#') && !atEnd())
         advance();
+
+    if (atEnd())
+        throw gear_e1001(startPosition);
 
     advance(); // advance '<'
     advance(); // advance '#'
@@ -132,7 +158,17 @@ void Scanner::multilineComment() noexcept
 
 char Scanner::advance() noexcept
 {
-    return !atEnd() ? _source[_end++] : '\0';
+    if (!atEnd())
+    {
+        _positionInFile.end++;
+
+        if (peek() == '\n')
+            nextLine();
+
+        return _source[_end++];
+    }
+
+    return '\0';
 }
 
 
@@ -145,6 +181,18 @@ char Scanner::peek() const noexcept
 char Scanner::peekNext() const noexcept
 {
     return !atEnd() ? _source[_end + 1] : '\0';
+}
+
+
+bool Scanner::match(const char ch) noexcept
+{
+    if (peek() == ch)
+    {
+        advance();
+        return true;
+    }
+
+    return false;
 }
 
 

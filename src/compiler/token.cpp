@@ -1,10 +1,18 @@
 #include <compiler/token.hpp>
 
+#include <algorithm>
+
 
 
 bool Token::isKeyword(const std::string& keyword) noexcept
 {
     return keywords.count(keyword) > 0;
+}
+
+
+bool Token::isType(const std::string& type) noexcept
+{
+    return std::find(types.cbegin(), types.cend(), type) != types.cend();
 }
 
 
@@ -25,6 +33,12 @@ bool Token::stringToBoolean(const std::string& boolean) noexcept
 bool Token::isKeyword() const noexcept
 {
     return Token::isKeyword(lexeme);
+}
+
+
+bool Token::isType() const noexcept
+{
+    return type == TokenType::Type;
 }
 
 
