@@ -17,6 +17,8 @@ struct GearOptions
     std::string programEntryPoint;
     unsigned int programBitMode;
 
+    bool printAst;
+
 
     Compiler initializeCompilerFromThis() const noexcept;
 };

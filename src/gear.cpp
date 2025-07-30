@@ -19,6 +19,8 @@ GearOptions::GearOptions() noexcept
 
     programEntryPoint = "main";
     programBitMode = (unsigned int)BitMode::Bits64;
+
+    printAst = false;
 }
 
 
@@ -84,7 +86,12 @@ void Gear::run(const GearOptions& options)
     if (failed())
         return;
 
-    Compiler compiler = options.initializeCompilerFromThis();
+    if (options.printAst)
+    {
+        println(ASTPrinter().print(statements));
+        return;
+    }
 
-    println(ASTPrinter().print(statements));
+
+    Compiler compiler = options.initializeCompilerFromThis();
 }
