@@ -9,6 +9,7 @@
 class Statement;
 class Expression;
 class ParserException;
+struct FunctionParameterDeclaration;
 
 
 class Parser
@@ -30,8 +31,16 @@ private:
     Statement* declaration();
     Statement* variableDeclaration();
 
+    Statement* functionDeclaration();
+    std::vector<FunctionParameterDeclaration> functionParameters();
+
+
     Statement* statement();
     Statement* expressionStatement();
+    Statement* returnStatement();
+
+    Statement* block();
+
 
     Expression* expression();
     Expression* term();

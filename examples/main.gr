@@ -1,7 +1,7 @@
 @entrypoint = main;
 
 
-function sumtwo: int16 number -> int16
+function sumtwo(number: int16) -> int16
 start
     return number + 2;
 end
@@ -13,7 +13,7 @@ this is a multiline comment
 <#
 
 
-function main -> int16
+function main() -> int16
 start
     decl number1: int16 = 10;
     decl number2: int16 = 25;

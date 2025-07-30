@@ -9,6 +9,7 @@
 #include <compiler/language/token.hpp>
 #include <compiler/language/scanner.hpp>
 #include <compiler/language/parser.hpp>
+#include <compiler/language/ast_printer.hpp>
 
 
 
@@ -80,6 +81,10 @@ void Gear::run(const GearOptions& options)
     const std::vector<Token> tokens = Scanner(s_source).scan();
     const std::vector<Statement*> statements = Parser(tokens).parse();
 
+    if (failed())
+        return;
+
     Compiler compiler = options.initializeCompilerFromThis();
 
+    println(ASTPrinter().print(statements));
 }

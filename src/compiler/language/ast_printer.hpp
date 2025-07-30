@@ -11,6 +11,7 @@ class ASTPrinter : public ExpressionProcessor, public StatementProcessor
 {
 private:
     std::stringstream _stream;
+    unsigned int _indentDegree;
 
 
 public:
@@ -21,10 +22,23 @@ public:
 
 
 private:
+    void increaseIndent() noexcept;
+    void decreaseIndent() noexcept;
+
+    std::string indent() const noexcept;
+
+    void beginStatement() noexcept;
+    void endStatement() noexcept;
+
+    void stringify(const std::string& name, const std::vector<const Expression*>& expressions);
+
+
+
     void processExpression(const ExpressionStatement& statement) override;
     void processDeclaration(const DeclarationStatement& statement) override;
-
-    void endOfStatement() noexcept;
+    void processFunctionDeclaration(const FunctionDeclarationStatement& statement) override;
+    void processReturn(const ReturnStatement& statement) override;
+    void processBlock(const BlockStatement& statement) override;
 
 
     void processLiteral(const LiteralExpression& expression) override;
@@ -33,5 +47,4 @@ private:
     void processIdentifier(const IdentifierExpression& expression) override;
 
 
-    void stringify(const std::string& name, const std::vector<const Expression*>& expressions);
 };

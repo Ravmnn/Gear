@@ -9,6 +9,9 @@ class Expression;
 
 class ExpressionStatement;
 class DeclarationStatement;
+class FunctionDeclarationStatement;
+class ReturnStatement;
+class BlockStatement;
 
 
 class StatementProcessor
@@ -16,6 +19,9 @@ class StatementProcessor
 public:
     virtual void processExpression(const ExpressionStatement& statement) = 0;
     virtual void processDeclaration(const DeclarationStatement& statement) = 0;
+    virtual void processFunctionDeclaration(const FunctionDeclarationStatement& statement) = 0;
+    virtual void processReturn(const ReturnStatement& statement) = 0;
+    virtual void processBlock(const BlockStatement& statement) = 0;
 };
 
 
@@ -47,10 +53,64 @@ class DeclarationStatement : public Statement
 public:
     DeclarationStatement(const Token& name, const Token& type, const Expression* value) noexcept;
 
+    // TODO: eveything may be "const"
 
     Token name;
     Token type;
     const Expression* const value;
+
+
+    void process(StatementProcessor& processor) const override;
+};
+
+
+
+struct FunctionParameterDeclaration
+{
+    Token name;
+    Token type;
+};
+
+
+class FunctionDeclarationStatement : public Statement
+{
+public:
+    FunctionDeclarationStatement(const Token& name, const std::vector<FunctionParameterDeclaration>& parameters,
+        const Token& returnType, const BlockStatement* body) noexcept;
+
+    
+    Token name;
+    std::vector<FunctionParameterDeclaration> parameters;
+    Token returnType;
+    const BlockStatement* const body;
+
+
+    void process(StatementProcessor& processor) const override;
+};
+
+
+
+class ReturnStatement : public Statement
+{
+public:
+    ReturnStatement(const Expression* expression) noexcept;
+
+
+    const Expression* const expression;
+
+
+    void process(StatementProcessor& processor) const override;
+};
+
+
+
+class BlockStatement : public Statement
+{
+public:
+    BlockStatement(const std::vector<Statement*>& statements) noexcept;
+
+
+    std::vector<Statement*> statements;
 
 
     void process(StatementProcessor& processor) const override;

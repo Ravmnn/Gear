@@ -1,5 +1,7 @@
 #include <compiler/language/ast_printer.hpp>
 
+#include <log.hpp>
+
 
 
 std::string ASTPrinter::print(const std::vector<Statement*>& statements) noexcept
@@ -15,29 +17,128 @@ std::string ASTPrinter::print(const std::vector<Statement*>& statements) noexcep
 
 
 
+void ASTPrinter::stringify(const std::string& name, const std::vector<const Expression*>& expressions)
+{
+    _stream << "(" << name;
+
+    for (const Expression* const expression : expressions)
+    {
+        _stream << ' ';
+        expression->process(*this);
+    }
+
+    _stream << ")";
+}
+
+
+
+void ASTPrinter::increaseIndent() noexcept
+{
+    _indentDegree++;
+}
+
+void ASTPrinter::decreaseIndent() noexcept
+{
+    _indentDegree--;
+}
+
+
+std::string ASTPrinter::indent() const noexcept
+{
+    std::string indent;
+
+    for (size_t i = 0; i < _indentDegree; i++)
+        indent += "    ";
+
+    return indent;
+}
+
+
+
+void ASTPrinter::beginStatement() noexcept
+{
+    _stream << indent();
+}
+
+void ASTPrinter::endStatement() noexcept
+{
+    _stream << std::endl;
+}
+
+
+
+
+
 void ASTPrinter::processExpression(const ExpressionStatement& statement)
 {
-    statement.expression->process(*this);
-    _stream << ';' << std::endl;
+    beginStatement();
     
-    endOfStatement();
+    statement.expression->process(*this);
+    
+    endStatement();
 }
 
 
 void ASTPrinter::processDeclaration(const DeclarationStatement& statement)
 {
+    beginStatement();
+
     _stream << statement.name.lexeme << ": " << statement.type.lexeme << " = ";
     statement.value->process(*this);
     
-    endOfStatement();
+    endStatement();
 }
 
 
-
-void ASTPrinter::endOfStatement() noexcept
+void ASTPrinter::processFunctionDeclaration(const FunctionDeclarationStatement& statement)
 {
-    _stream << ';' << std::endl;
+    beginStatement();
+
+    _stream << "function " << statement.name.lexeme << "(";
+    
+    for (const FunctionParameterDeclaration& parameter : statement.parameters)
+    {
+        const bool atEnd = &parameter == (statement.parameters.cend() - 1).base();
+
+        _stream << parameter.name.lexeme << ": " << parameter.type.lexeme << (!atEnd ? ", " : "");
+    }
+
+    _stream << ")" << " -> " << statement.returnType.lexeme << std::endl;
+
+    processBlock(*statement.body);
+    
+    endStatement();
 }
+
+
+void ASTPrinter::processReturn(const ReturnStatement& statement)
+{
+    beginStatement();
+
+    _stream << "return ";
+    statement.expression->process(*this);
+
+    endStatement();
+}
+
+
+void ASTPrinter::processBlock(const BlockStatement& statement)
+{
+    beginStatement();
+    _stream << "start" << std::endl;
+    
+    increaseIndent();
+
+    for (Statement* const statement : statement.statements)
+        statement->process(*this);
+
+    decreaseIndent();
+    
+    _stream << indent() << "end";
+    endStatement();
+}
+
+
 
 
 
@@ -62,20 +163,4 @@ void ASTPrinter::processGrouping(const GroupingExpression& expression)
 void ASTPrinter::processIdentifier(const IdentifierExpression& expression)
 {
     _stream << "$" << expression.identifier.lexeme;
-}
-
-
-
-
-void ASTPrinter::stringify(const std::string& name, const std::vector<const Expression*>& expressions)
-{
-    _stream << "(" << name;
-
-    for (const Expression* const expression : expressions)
-    {
-        _stream << ' ';
-        expression->process(*this);
-    }
-
-    _stream << ")";
 }

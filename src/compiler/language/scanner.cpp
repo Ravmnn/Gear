@@ -50,6 +50,7 @@ void Scanner::scanToken()
     case '@': addToken(TokenType::Attribute); break;
     case ':': addToken(TokenType::Colon); break;
     case ';': addToken(TokenType::SemiColon); break;
+    case ',': addToken(TokenType::Comma); break;
     case '-': addToken((match('>') ? TokenType::Arrow : TokenType::Minus)); break;
     case '+': addToken(TokenType::Plus); break;
     case '*': addToken(TokenType::Star); break;

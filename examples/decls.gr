@@ -1,10 +1,19 @@
-aksjdfh;
+function sum(a: int16, b: int16) -> int16
+start
+    return a + b;
+end
 
-function main -> int16
+
+function main() -> int16
 start
     decl number: int16 = 10;
     decl result: int16 = 5 * number + 20 * 5;
 
+    start
+        start 123 / 456; end
+
+        1 + 2;
+    end
 
     (1 + 2 / 7);
 end

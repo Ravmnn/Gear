@@ -49,3 +49,28 @@ ParserException gear_e2006(const TokenPosition& position) noexcept
 {
     return ParserException(6, "Expect expression.", position);
 }
+
+ParserException gear_e2007(const TokenPosition& position) noexcept
+{
+    return ParserException(7, "Expect \"(\" after function name.", position);
+}
+
+ParserException gear_e2008(const TokenPosition& position) noexcept
+{
+    return ParserException(8, "Expect \")\" before return type specifier.", position);
+}
+
+ParserException gear_e2009(const TokenPosition& position) noexcept
+{
+    return ParserException(9, "Expect function return type specifier after parameter list.", position);
+}
+
+ParserException gear_e2010(const TokenPosition& position) noexcept
+{
+    return ParserException(10, "Expect block statement.", position);
+}
+
+ParserException gear_e2011(const TokenPosition& position) noexcept
+{
+    return ParserException(11, "Unclosed block statement.", position);
+}

@@ -9,6 +9,7 @@
 enum class TokenType
 {
     Attribute, SemiColon, Colon, Arrow,
+    Comma,
 
     Plus, Minus, Star, Slash, Equal,
     ParenLeft, ParenRight,
