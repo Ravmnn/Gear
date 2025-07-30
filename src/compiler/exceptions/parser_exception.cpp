@@ -17,6 +17,7 @@ const TokenPosition& ParserException::position() const noexcept
 }
 
 
+
 std::string ParserException::format() const noexcept
 {
     std::stringstream stream;

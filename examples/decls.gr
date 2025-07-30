@@ -1,5 +1,4 @@
-@entrypoint = main;
-
+aksjdfh;
 
 function main -> int16
 start
@@ -8,6 +7,4 @@ start
 
 
     (1 + 2 / 7);
-
-    return 0;
 end

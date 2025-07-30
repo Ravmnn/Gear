@@ -24,7 +24,7 @@ unsigned int GearException::id() const noexcept
 
 const char* GearException::what() const noexcept
 {
-    return m_message.c_str();
+    return format().c_str();
 }
 
 

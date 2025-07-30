@@ -2,6 +2,7 @@
 
 #include <compiler/exceptions/exceptions.hpp>
 #include <compiler/language/token.hpp>
+#include <log.hpp>
 #include <gear.hpp>
 
 
@@ -27,7 +28,7 @@ std::vector<Token> Scanner::scan()
         }
         catch (const ScannerException& exception)
         {
-            Gear::error(exception);
+            error(exception);
         }
     }
 

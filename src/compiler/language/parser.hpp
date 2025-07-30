@@ -28,7 +28,6 @@ public:
 
 private:
     Statement* declaration();
-    Statement* attributeDeclaration();
     Statement* variableDeclaration();
 
     Statement* statement();

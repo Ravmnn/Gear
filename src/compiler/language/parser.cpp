@@ -3,6 +3,7 @@
 #include <compiler/language/statement.hpp>
 #include <compiler/language/expression.hpp>
 #include <compiler/exceptions/exceptions.hpp>
+#include <log.hpp>
 #include <gear.hpp>
 
 
@@ -10,7 +11,6 @@
 Parser::Parser(const std::vector<Token>& tokens) noexcept
     : _tokens(tokens), _current(0)
 {}
-
 
 
 std::vector<Statement*> Parser::parse()
@@ -25,7 +25,7 @@ std::vector<Statement*> Parser::parse()
         }
         catch (const ParserException& exception)
         {
-            Gear::error(exception);
+            error(exception);
             synchronize();
         }
     }
@@ -39,26 +39,11 @@ Statement* Parser::declaration()
 {
     switch (peek().type)
     {
-    case TokenType::Attribute: return attributeDeclaration();
     case TokenType::KwDeclare: return variableDeclaration();
 
     default:
         return statement();
     };
-}
-
-
-Statement* Parser::attributeDeclaration()
-{
-    advance();
-
-    const Token name = expect(TokenType::Identifier, gear_e2001(previous().position));
-    expect(TokenType::Equal, gear_e2004(previous().position));
-    const Token value = expect(TokenType::Value, gear_e2007(previous().position));
-
-    expectEndOfStatement();
-
-    return new CompilerAttributeStatement(name, value);
 }
 
 
@@ -178,6 +163,8 @@ void Parser::synchronize() noexcept
         case TokenType::KwEnd:
             return;
         }
+
+        advance();
     }
 }
 

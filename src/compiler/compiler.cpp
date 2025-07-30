@@ -8,9 +8,10 @@ const std::string Compiler::startLabel = "_start";
 
 
 
-Compiler::Compiler() noexcept
+Compiler::Compiler(const BitMode bitMode, const std::string& entryPoint) noexcept
 {
-    _bitmode = BitMode::Bits64;
+    _bitMode = bitMode;
+    _entryPoint = entryPoint;
 }
 
 
@@ -21,29 +22,29 @@ AssemblyGenerator& Compiler::assembly() noexcept
 }
 
 
-BitMode Compiler::bitmode() const noexcept
+BitMode Compiler::bitMode() const noexcept
 {
-    return _bitmode;
+    return _bitMode;
 }
 
 
-const std::string& Compiler::entrypoint() const noexcept
+const std::string& Compiler::entryPoint() const noexcept
 {
-    return _entrypoint;
+    return _entryPoint;
 }
 
 
 
 
-void Compiler::setBitmode(const BitMode bitmode) noexcept
+void Compiler::setBitmode(const BitMode bitMode) noexcept
 {
-    _bitmode = bitmode;
+    _bitMode = bitMode;
 }
 
 
-void Compiler::setEntrypoint(const std::string& entrypoint) noexcept
+void Compiler::setEntryPoint(const std::string& entryPoint) noexcept
 {
-    _entrypoint = entrypoint;
+    _entryPoint = entryPoint;
 }
 
 
@@ -52,14 +53,12 @@ void Compiler::setEntrypoint(const std::string& entrypoint) noexcept
 void Compiler::compile()
 {
     setup();
-
-    // TODO: resolve attributes first (maybe create a pre-compiling stage)
 }
 
 
 void Compiler::setup()
 {
-    _asm.nasmDirectiveBits(_bitmode);
+    _asm.nasmDirectiveBits(_bitMode);
     _asm.newline(2);
 
 

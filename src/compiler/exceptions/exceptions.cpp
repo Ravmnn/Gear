@@ -14,6 +14,7 @@ ScannerException gear_e1001(const TokenPosition& position) noexcept
 
 
 
+
 ParserException gear_e2000(const TokenPosition& position) noexcept
 {
     return ParserException(0, "Expect \";\" after statement.", position);
@@ -47,9 +48,4 @@ ParserException gear_e2005(const TokenPosition& position) noexcept
 ParserException gear_e2006(const TokenPosition& position) noexcept
 {
     return ParserException(6, "Expect expression.", position);
-}
-
-ParserException gear_e2007(const TokenPosition& position) noexcept
-{
-    return ParserException(7, "Expect compile-time expression.", position);
 }

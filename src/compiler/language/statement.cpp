@@ -2,18 +2,6 @@
 
 
 
-CompilerAttributeStatement::CompilerAttributeStatement(const Token& name, const Token& value) noexcept
-    : name(name), value(value)
-{}
-
-
-void CompilerAttributeStatement::process(StatementProcessor& processor) const
-{
-    processor.processCompilerAttribute(*this);
-}
-
-
-
 ExpressionStatement::ExpressionStatement(const Expression* const expression) noexcept
     : expression(expression)
 {}

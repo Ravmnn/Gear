@@ -21,7 +21,6 @@ public:
 
 
 private:
-    void processCompilerAttribute(const CompilerAttributeStatement& statement) override;
     void processExpression(const ExpressionStatement& statement) override;
     void processDeclaration(const DeclarationStatement& statement) override;
 

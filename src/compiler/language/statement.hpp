@@ -7,7 +7,6 @@
 
 class Expression;
 
-class CompilerAttributeStatement;
 class ExpressionStatement;
 class DeclarationStatement;
 
@@ -15,7 +14,6 @@ class DeclarationStatement;
 class StatementProcessor
 {
 public:
-    virtual void processCompilerAttribute(const CompilerAttributeStatement& statement) = 0;
     virtual void processExpression(const ExpressionStatement& statement) = 0;
     virtual void processDeclaration(const DeclarationStatement& statement) = 0;
 };
@@ -26,21 +24,6 @@ class Statement
 {
 public:
     virtual void process(StatementProcessor& processor) const = 0;
-};
-
-
-
-class CompilerAttributeStatement : public Statement
-{
-public:
-    CompilerAttributeStatement(const Token& name, const Token& value) noexcept;
-
-
-    Token name;
-    Token value;
-
-
-    void process(StatementProcessor& processor) const override;
 };
 
 

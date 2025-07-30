@@ -1,14 +1,33 @@
 #include <gear.hpp>
 
 #include <iostream>
+#include <filesystem>
 
+#include <log.hpp>
+#include <file.hpp>
+#include <compiler/assembly/nasm.hpp>
 #include <compiler/language/token.hpp>
 #include <compiler/language/scanner.hpp>
 #include <compiler/language/parser.hpp>
-#include <compiler/language/ast_printer.hpp>
-#include <compiler/exceptions/exception_formatting.hpp>
-#include <compiler/exceptions/scanner_exception.hpp>
-#include <compiler/exceptions/parser_exception.hpp>
+
+
+
+GearOptions::GearOptions() noexcept
+{
+    // default values
+
+    programEntryPoint = "main";
+    programBitMode = (unsigned int)BitMode::Bits64;
+}
+
+
+Compiler GearOptions::initializeCompilerFromThis() const noexcept
+{
+    Compiler compiler((BitMode)programBitMode, programEntryPoint);
+
+
+    return compiler;
+}
 
 
 
@@ -38,7 +57,6 @@ static std::vector<std::string> split(const std::string& source, const char deli
 
 
 std::string Gear::s_source = std::string();
-bool Gear::s_failed = false;
 
 
 const std::string& Gear::source() noexcept
@@ -53,37 +71,15 @@ const std::vector<std::string> Gear::sourceAsLines() noexcept
 }
 
 
-void Gear::compile(const std::string& source)
-{
-    s_source = source;
 
-    const std::vector<Token> tokens = Scanner(source).scan();
+
+void Gear::run(const GearOptions& options)
+{
+    s_source = readFile(options.filePath);
+
+    const std::vector<Token> tokens = Scanner(s_source).scan();
     const std::vector<Statement*> statements = Parser(tokens).parse();
 
-    if (!failed())
-        std::cout << ASTPrinter().print(statements) << std::endl;
-}
+    Compiler compiler = options.initializeCompilerFromThis();
 
-
-
-bool Gear::failed() noexcept
-{
-    return s_failed;
-}
-
-
-void Gear::error(const std::string& message) noexcept
-{
-    std::cout << "Error: " << message << std::endl << std::endl;
-    s_failed = true;
-}
-
-void Gear::error(const ScannerException& exception) noexcept
-{
-    error(exception.format());
-}
-
-void Gear::error(const ParserException& exception) noexcept
-{
-    error(exception.format());
 }

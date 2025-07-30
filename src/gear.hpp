@@ -3,17 +3,30 @@
 #include <string>
 #include <vector>
 
+#include <compiler/compiler.hpp>
 
 
-class ScannerException;
-class ParserException;
+
+struct GearOptions
+{
+    GearOptions() noexcept;
+
+
+    std::string filePath;
+
+    std::string programEntryPoint;
+    unsigned int programBitMode;
+
+
+    Compiler initializeCompilerFromThis() const noexcept;
+};
+
 
 
 class Gear
 {
 private:
     static std::string s_source;
-    static bool s_failed;
 
 
 public:
@@ -24,12 +37,5 @@ public:
     static const std::vector<std::string> sourceAsLines() noexcept;
 
 
-    static void compile(const std::string& source);
-
-
-    static bool failed() noexcept;
-
-    static void error(const std::string& message) noexcept;
-    static void error(const ScannerException& exception) noexcept;
-    static void error(const ParserException& exception) noexcept;
+    static void run(const GearOptions& options);
 };

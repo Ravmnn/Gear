@@ -7,7 +7,8 @@
 
 enum class ExceptionSection
 {
-    Scanner = 1,
+    CommandLine,
+    Scanner,
     Parser
 };
 
@@ -29,6 +30,8 @@ public:
 
 
     const char* what() const noexcept override;
+    
+    virtual std::string format() const noexcept = 0;
 
 
 protected:

@@ -15,12 +15,6 @@ std::string ASTPrinter::print(const std::vector<Statement*>& statements) noexcep
 
 
 
-void ASTPrinter::processCompilerAttribute(const CompilerAttributeStatement& statement)
-{
-    _stream << '@' << statement.name.lexeme << " = " << statement.value.lexeme;
-}
-
-
 void ASTPrinter::processExpression(const ExpressionStatement& statement)
 {
     statement.expression->process(*this);
