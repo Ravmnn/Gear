@@ -20,7 +20,12 @@ GearOptions::GearOptions() noexcept
     programEntryPoint = "main";
     programBitMode = (unsigned int)BitMode::Bits64;
 
+    programOutputName = "app";
+
     printAst = false;
+    compile = true;
+    assemble = true;
+    link = true;
 }
 
 
@@ -108,7 +113,22 @@ void Gear::run(const GearOptions& options)
     if (failed())
         return;
 
-    writeToOutputFile(assembly);
+
+    std::filesystem::path file;
+    std::filesystem::path objectFile;
+    std::filesystem::path executableFile;
+
+    file = writeToOutputFile(assembly);
+
+    if (!options.assemble)
+        return;
+    
+    objectFile = assemble(file);
+
+    if (!options.link)
+        return;
+    
+    executableFile = link(objectFile);
 }
 
 
@@ -124,12 +144,42 @@ std::string Gear::compile(const std::vector<Statement*>& statements)
 }
 
 
-void Gear::writeToOutputFile(const std::string& content)
+std::filesystem::path Gear::assemble(const std::filesystem::path& file) noexcept
+{
+    std::stringstream command;
+    const std::filesystem::path outputFilePath = file.parent_path() / file.stem() += ".o";
+
+    command << "nasm " << file.string() << " -f elf64" << " -o " << outputFilePath;
+
+    system(command.str().c_str());
+
+    return outputFilePath;
+}
+
+
+std::filesystem::path Gear::link(const std::filesystem::path& file) noexcept
+{
+    std::stringstream command;
+    const std::filesystem::path outputFilePath = file.parent_path() / options().programOutputName;
+
+    command << "ld " << file.string() << " -o " << outputFilePath;
+
+    system(command.str().c_str());
+
+    return outputFilePath;
+}
+
+
+std::filesystem::path Gear::writeToOutputFile(const std::string& content)
 {
     const GearOptions& options = Gear::options();
 
     const std::filesystem::path outputFilePath = options.filePath.parent_path();
-    const std::string outputFileName = options.filePath.stem().string() + ".asm";
+    const std::string outputFileName = options.filePath.stem() += ".asm";
 
-    writeFile(outputFilePath / outputFileName, content);
+    const std::filesystem::path finalPath = outputFilePath / outputFileName;
+
+    writeFile(finalPath, content);
+
+    return finalPath;
 }

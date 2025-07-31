@@ -21,7 +21,12 @@ struct GearOptions
     std::string programEntryPoint;
     unsigned int programBitMode;
 
+    std::string programOutputName;
+
     bool printAst;
+    bool compile;
+    bool assemble;
+    bool link;
 
 
     Compiler initializeCompilerFromThis() const noexcept;
@@ -51,6 +56,8 @@ public:
 
 private:
     static std::string compile(const std::vector<Statement*>& statements);
+    static std::filesystem::path assemble(const std::filesystem::path& file) noexcept;
+    static std::filesystem::path link(const std::filesystem::path& file) noexcept;
 
-    static void writeToOutputFile(const std::string& content);
+    static std::filesystem::path writeToOutputFile(const std::string& content);
 };
