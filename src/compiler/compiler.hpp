@@ -9,12 +9,17 @@ class Compiler
 private:
     AssemblyGenerator _asm;
 
+    AssemblyGenerator _data;
+    AssemblyGenerator _start;
+    AssemblyGenerator _funcs;
+
+
     BitMode _bitMode;
     std::string _entryPoint;
 
 
 public:
-    static const std::string startLabel;
+    static const std::string startLabelName;
 
 
     Compiler(BitMode bitMode, const std::string& entryPoint) noexcept;
@@ -32,5 +37,12 @@ public:
 
     void compile();
 
-    void setup();
+
+private:
+    void startLabel();
+
+    void finish();
+
+
+    void syscall(unsigned int code, const std::string& arg1, const std::string& arg2, const std::string& arg3);
 };

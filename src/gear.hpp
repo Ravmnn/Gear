@@ -8,6 +8,9 @@
 
 
 
+class Statement;
+
+
 struct GearOptions
 {
     GearOptions() noexcept;
@@ -45,4 +48,9 @@ public:
 
 
     static void run(const GearOptions& options);
+
+private:
+    static std::string compile(const std::vector<Statement*>& statements);
+
+    static void writeToOutputFile(const std::string& content);
 };

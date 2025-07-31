@@ -88,6 +88,10 @@ void Gear::run(const GearOptions& options)
     s_options = options;
 
     const std::vector<Token> tokens = Scanner(s_source).scan();
+
+    if (failed())
+        return;
+
     const std::vector<Statement*> statements = Parser(tokens).parse();
 
     if (failed())
@@ -99,6 +103,33 @@ void Gear::run(const GearOptions& options)
         return;
     }
 
+    const std::string assembly = compile(statements);
+
+    if (failed())
+        return;
+
+    writeToOutputFile(assembly);
+}
+
+
+
+std::string Gear::compile(const std::vector<Statement*>& statements)
+{
+    const GearOptions& options = Gear::options();
 
     Compiler compiler = options.initializeCompilerFromThis();
+    compiler.compile();
+
+    return compiler.assembly().get();
+}
+
+
+void Gear::writeToOutputFile(const std::string& content)
+{
+    const GearOptions& options = Gear::options();
+
+    const std::filesystem::path outputFilePath = options.filePath.parent_path();
+    const std::string outputFileName = options.filePath.stem().string() + ".asm";
+
+    writeFile(outputFilePath / outputFileName, content);
 }

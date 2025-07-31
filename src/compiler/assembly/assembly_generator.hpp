@@ -13,6 +13,8 @@ private:
     std::stringstream _stream;
     bool _indent;
 
+    std::string _comment;
+
 
 public:
     AssemblyGenerator() = default;
@@ -30,6 +32,8 @@ public:
     void newline(unsigned int amount = 1) noexcept;
     std::string tab() const noexcept;
 
+    
+    void insertOther(const AssemblyGenerator& other) noexcept;
 
     void nasmDirective(const std::string& directive, const std::string& value) noexcept;
 
@@ -38,6 +42,16 @@ public:
     void nasmDirectiveGlobal(const std::string& identifier) noexcept;
 
 
+    void comment(const std::string& content) noexcept;
+
     void label(const std::string& name) noexcept;
     void localLabel(const std::string& name) noexcept;
+
+    void instruction(const std::string& instruction, const std::string& op1, const std::string& op2) noexcept;
+    void instruction(const std::string& instruction, const std::string& op1) noexcept;
+    void instruction(const std::string& instruction) noexcept;
+
+
+    void syscall(const std::string& code, const std::string& arg1 = "", const std::string& arg2 = "", const std::string& arg3 = "") noexcept;
+    void syscallExit(unsigned int exitCode) noexcept;
 };

@@ -15,3 +15,12 @@ std::string readFile(const std::string& path)
 
     return buffer.str();
 }
+
+
+
+void writeFile(const std::string& path, const std::string& content)
+{
+    std::ofstream file(path);
+
+    file << content;
+}

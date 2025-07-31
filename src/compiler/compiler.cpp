@@ -4,7 +4,7 @@
 
 
 
-const std::string Compiler::startLabel = "_start";
+const std::string Compiler::startLabelName = "_start";
 
 
 
@@ -52,11 +52,34 @@ void Compiler::setEntryPoint(const std::string& entryPoint) noexcept
 
 void Compiler::compile()
 {
-    setup();
+    startLabel();
+
+
+    finish();
 }
 
 
-void Compiler::setup()
+void Compiler::startLabel()
+{
+    _start.nasmDirectiveGlobal(startLabelName);
+    _start.label(startLabelName);
+    
+    _start.enableIndent();
+
+
+    _start.instruction("mov", "rbp", "rsp");
+    _start.newline();
+
+    // _start.instruction("call", _entryPoint);
+
+    _start.syscallExit(0);
+
+
+    _start.disableIndent();
+}
+
+
+void Compiler::finish()
 {
     _asm.nasmDirectiveBits(_bitMode);
     _asm.newline(2);
@@ -66,6 +89,8 @@ void Compiler::setup()
     _asm.nasmDirectiveSection(".data");
     _asm.newline();
 
+    _asm.insertOther(_data);
+
     _asm.newline(2);
 
 
@@ -73,11 +98,11 @@ void Compiler::setup()
     _asm.nasmDirectiveSection(".text");
     _asm.newline();
 
-    _asm.nasmDirectiveGlobal(startLabel);
-    _asm.label(startLabel);
-    _asm.enableIndent();
+    _asm.insertOther(_start);
+
+    _asm.newline(2);
 
 
-
-    _asm.disableIndent();
+    
+    _asm.insertOther(_funcs);
 }
