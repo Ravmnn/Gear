@@ -60,6 +60,10 @@ private:
     const Token& expect(TokenType token, const ParserException& exception);
     const Token& expectEndOfStatement();
 
+    const Token& expectIdentifier();
+    const Token& expectTypename();
+
+
     bool match(const std::vector<TokenType>& tokens) noexcept;
     bool check(TokenType token) const noexcept;
 

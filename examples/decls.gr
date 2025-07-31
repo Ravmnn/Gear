@@ -1,6 +1,6 @@
 function sum(a: int16, b: int16) -> int16
 start
-    return a + b;
+    retur a + b;
 end
 
 

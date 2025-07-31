@@ -3,6 +3,8 @@
 #include <sstream>
 #include <iomanip>
 
+#include <gear.hpp>
+
 
 
 GearException::GearException(const unsigned int section, const unsigned int id, const std::string& message) noexcept

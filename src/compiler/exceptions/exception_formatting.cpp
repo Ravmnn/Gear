@@ -1,6 +1,7 @@
 #include <compiler/exceptions/exception_formatting.hpp>
 
 #include <sstream>
+#include <filesystem>
 
 #include <compiler/language/token.hpp>
 #include <gear.hpp>
@@ -10,7 +11,7 @@
 std::string generateFinalExceptionMessage(const std::string& message, const TokenPosition& position) noexcept
 {
     std::stringstream stream;
-
+    
     stream << message << std::endl << std::endl;
     stream << generateTokenLocationHint(Gear::sourceAsLines(), position);
 
@@ -58,7 +59,7 @@ std::string generateTokenLocationHintArrow(const TokenPosition& position) noexce
             stream << ' ';
 
         else if (i > position.start)
-            stream << "~";
+            stream << '~';
     }
 
 

@@ -18,5 +18,9 @@ public:
     const TokenPosition& position() const noexcept;
 
 
-    std::string format() const noexcept;
+    std::string format() const noexcept override;
+
+
+protected:
+    std::string formatExceptionInfo() const noexcept override;
 };

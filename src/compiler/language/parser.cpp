@@ -52,9 +52,9 @@ Statement* Parser::variableDeclaration()
 {
     advance();
 
-    const Token name = expect(TokenType::Identifier, gear_e2001(previous().position));
+    const Token name = expectIdentifier();
     expect(TokenType::Colon, gear_e2002(previous().position));
-    const Token type = expect(TokenType::Type, gear_e2003(previous().position));
+    const Token type = expectTypename();
     expect(TokenType::Equal, gear_e2004(previous().position));
     
     const Expression* const value = expression();
@@ -69,7 +69,7 @@ Statement* Parser::functionDeclaration()
 {
     advance();
 
-    const Token name = expect(TokenType::Identifier, gear_e2001(previous().position));
+    const Token name = expectIdentifier();
     std::vector<FunctionParameterDeclaration> parameters;
 
     expect(TokenType::ParenLeft, gear_e2007(previous().position));
@@ -92,9 +92,9 @@ std::vector<FunctionParameterDeclaration> Parser::functionParameters()
     if (check(TokenType::Identifier))
         do
         {
-            const Token name = expect(TokenType::Identifier, gear_e2001(previous().position));
+            const Token name = expectIdentifier();
             expect(TokenType::Colon, gear_e2002(previous().position));
-            const Token type = expect(TokenType::Type, gear_e2003(previous().position));
+            const Token type = expectTypename();
 
             parameters.push_back(FunctionParameterDeclaration{ name, type });
         }
@@ -261,6 +261,19 @@ const Token& Parser::expectEndOfStatement()
 {
     return expect(TokenType::SemiColon, gear_e2000(previous().position));
 }
+
+
+
+const Token& Parser::expectIdentifier()
+{
+    return expect(TokenType::Identifier, gear_e2001(previous().position));
+}
+
+const Token& Parser::expectTypename()
+{
+    return expect(TokenType::Type, gear_e2003(previous().position));
+}
+
 
 
 bool Parser::match(const std::vector<TokenType>& tokens) noexcept

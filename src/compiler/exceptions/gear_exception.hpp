@@ -35,5 +35,5 @@ public:
 
 
 protected:
-    std::string formatExceptionInfo() const noexcept;
+    virtual std::string formatExceptionInfo() const noexcept;
 };

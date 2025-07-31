@@ -60,6 +60,7 @@ static std::vector<std::string> split(const std::string& source, const char deli
 
 
 std::string Gear::s_source = std::string();
+GearOptions Gear::s_options = GearOptions();
 
 
 const std::string& Gear::source() noexcept
@@ -67,10 +68,15 @@ const std::string& Gear::source() noexcept
     return s_source;
 }
 
-
 const std::vector<std::string> Gear::sourceAsLines() noexcept
 {
     return split(source(), '\n');
+}
+
+
+const GearOptions& Gear::options() noexcept
+{
+    return s_options;
 }
 
 
@@ -79,6 +85,7 @@ const std::vector<std::string> Gear::sourceAsLines() noexcept
 void Gear::run(const GearOptions& options)
 {
     s_source = readFile(options.filePath);
+    s_options = options;
 
     const std::vector<Token> tokens = Scanner(s_source).scan();
     const std::vector<Statement*> statements = Parser(tokens).parse();
