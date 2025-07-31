@@ -1,0 +1,6 @@
+function main() -> int16
+start
+    (8 - 4) + (5 + (9 + 3)); # 21
+
+    return 0;
+end

@@ -4,6 +4,7 @@
 
 #include <compiler/exceptions/scanner_exception.hpp>
 #include <compiler/exceptions/parser_exception.hpp>
+#include <compiler/exceptions/exceptions.hpp>
 
 
 
@@ -24,12 +25,10 @@ void error(const std::string& message) noexcept
 }
 
 
-void error(const ScannerException& exception) noexcept
+void error(const GearException* const exception)
 {
-    error(exception.format());
-}
+    if (!exception)
+        throw internal_e0002();
 
-void error(const ParserException& exception) noexcept
-{
-    error(exception.format());
+    error(exception->format());
 }

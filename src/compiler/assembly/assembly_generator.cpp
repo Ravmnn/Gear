@@ -47,7 +47,7 @@ void AssemblyGenerator::newline(unsigned int amount) noexcept
 
 std::string AssemblyGenerator::tab() const noexcept
 {
-    return _indent ? "\t" : "";
+    return _indent ? "    " : "";
 }
 
 

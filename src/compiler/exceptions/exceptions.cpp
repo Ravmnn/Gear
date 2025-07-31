@@ -74,3 +74,31 @@ ParserException gear_e2011(const TokenPosition& position) noexcept
 {
     return ParserException(11, "Unclosed block statement.", position);
 }
+
+
+
+
+InternalException internal_e0000() noexcept
+{
+    return InternalException(0, "Invalid type name.");
+}
+
+InternalException internal_e0001() noexcept
+{
+    return InternalException(1, "Invalid binary operator.");
+}
+
+InternalException internal_e0002() noexcept
+{
+    return InternalException(2, "Unexpected null pointer.");
+}
+
+InternalException internal_e0003() noexcept
+{
+    return InternalException(3, "There are no busy registers.");
+}
+
+InternalException internal_e0004() noexcept
+{
+    return InternalException(4, "Register is already busy.");
+}

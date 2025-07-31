@@ -9,7 +9,10 @@ enum class ExceptionSection
 {
     CommandLine,
     Scanner,
-    Parser
+    Parser,
+    Compiler,
+
+    Internal = 10
 };
 
 

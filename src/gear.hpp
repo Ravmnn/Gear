@@ -29,7 +29,7 @@ struct GearOptions
     bool link;
 
 
-    Compiler initializeCompilerFromThis() const noexcept;
+    Compiler initializeCompilerFromThis(const std::vector<Statement*>& statements) const noexcept;
 };
 
 

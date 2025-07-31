@@ -28,7 +28,7 @@ std::vector<Token> Scanner::scan()
         }
         catch (const ScannerException& exception)
         {
-            error(exception);
+            error(&exception);
         }
     }
 

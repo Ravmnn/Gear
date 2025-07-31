@@ -3,6 +3,8 @@
 #include <compiler/exceptions/gear_exception.hpp>
 #include <compiler/exceptions/scanner_exception.hpp>
 #include <compiler/exceptions/parser_exception.hpp>
+#include <compiler/exceptions/compiler_exception.hpp>
+#include <compiler/exceptions/internal_exception.hpp>
 
 
 
@@ -23,3 +25,11 @@ ParserException gear_e2008(const TokenPosition& position) noexcept;
 ParserException gear_e2009(const TokenPosition& position) noexcept;
 ParserException gear_e2010(const TokenPosition& position) noexcept;
 ParserException gear_e2011(const TokenPosition& position) noexcept;
+
+
+
+InternalException internal_e0000() noexcept;
+InternalException internal_e0001() noexcept;
+InternalException internal_e0002() noexcept;
+InternalException internal_e0003() noexcept;
+InternalException internal_e0004() noexcept;

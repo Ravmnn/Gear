@@ -5,16 +5,13 @@
 
 
 
-class CommandLineException;
-class ScannerException;
-class ParserException;
+class GearException;
 
 
 bool failed() noexcept;
 
 void error(const std::string& message) noexcept;
-void error(const ScannerException& exception) noexcept;
-void error(const ParserException& exception) noexcept;
+void error(const GearException* exception);
 
 
 template <typename... T>

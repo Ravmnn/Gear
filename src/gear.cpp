@@ -29,10 +29,9 @@ GearOptions::GearOptions() noexcept
 }
 
 
-Compiler GearOptions::initializeCompilerFromThis() const noexcept
+Compiler GearOptions::initializeCompilerFromThis(const std::vector<Statement*>& statements) const noexcept
 {
-    Compiler compiler((BitMode)programBitMode, programEntryPoint);
-
+    Compiler compiler(statements, (BitMode)programBitMode, programEntryPoint);
 
     return compiler;
 }
@@ -137,7 +136,7 @@ std::string Gear::compile(const std::vector<Statement*>& statements)
 {
     const GearOptions& options = Gear::options();
 
-    Compiler compiler = options.initializeCompilerFromThis();
+    Compiler compiler = options.initializeCompilerFromThis(statements);
     compiler.compile();
 
     return compiler.assembly().get();

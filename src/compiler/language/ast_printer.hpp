@@ -7,7 +7,7 @@
 
 
 
-class ASTPrinter : public ExpressionProcessor, public StatementProcessor
+class ASTPrinter : ExpressionProcessor, StatementProcessor
 {
 private:
     std::stringstream _stream;

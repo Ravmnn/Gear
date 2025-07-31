@@ -2,7 +2,9 @@
 
 #include <CLI11/CLI11.hpp>
 
+#include <compiler/exceptions/internal_exception.hpp>
 #include <gear.hpp>
+#include <log.hpp>
 
 
 
@@ -31,8 +33,15 @@ int main(int argc, char** argv)
         return app.exit(e);
     }
 
+    catch (const InternalException& exception)
+    {
+        error(&exception);
 
-    return 0;
+        return EXIT_FAILURE;
+    }
+
+
+    return EXIT_SUCCESS;
 }
 
 

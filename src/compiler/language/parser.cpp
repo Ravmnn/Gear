@@ -27,7 +27,7 @@ std::vector<Statement*> Parser::parse()
         }
         catch (const ParserException& exception)
         {
-            error(exception);
+            error(&exception);
             synchronize();
         }
     }
