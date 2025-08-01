@@ -4,6 +4,13 @@
 
 
 
+AssemblyGenerator::AssemblyGenerator()
+{
+    _indent = false;
+}
+
+
+
 std::string AssemblyGenerator::get() const noexcept
 {
     return _stream.str();
@@ -33,7 +40,7 @@ void AssemblyGenerator::disableIndent() noexcept
 
 
 
-void AssemblyGenerator::newline(unsigned int amount) noexcept
+void AssemblyGenerator::newline(const unsigned int amount) noexcept
 {
     if (!_comment.empty())
     {

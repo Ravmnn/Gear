@@ -216,11 +216,8 @@ void Compiler::processDeclaration(const DeclarationStatement& statement)
 
 void Compiler::processFunctionDeclaration(const FunctionDeclarationStatement& statement)
 {
-    println("before:\n", _code.get());
-
-    instantComment(_code, "this is a test");
-    println("after:\n", _code.get());
-    
+    instantComment(_code, _astPrinter.print({ &statement }));
+   
     _code.label(statement.name.lexeme);
     _code.enableIndent();
 

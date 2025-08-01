@@ -17,7 +17,7 @@ private:
 
 
 public:
-    AssemblyGenerator() = default;
+    AssemblyGenerator();
 
 
     std::string get() const noexcept;
