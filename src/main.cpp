@@ -76,4 +76,6 @@ void addCommandLineFlags(CLI::App& app, GearOptions& options) noexcept
     app.add_flag("--compile, !--no-compile", options.compile, "Whether to compile the source file or not.");
     app.add_flag("--assemble, !--no-assemble", options.assemble, "Whether to assemble the assembly generated or not.");
     app.add_flag("--link, !--no-link", options.link, "Whether to link the object file generated or not.");
+
+    app.add_flag("--comment-asm, !--no-comment-asm", options.commentAsm, "Whether to generate assembly comments or not.");
 }

@@ -5,6 +5,7 @@
 #include <compiler/exceptions/exceptions.hpp>
 #include <compiler/assembly/nasm.hpp>
 #include <compiler/sizes.hpp>
+#include <log.hpp>
 
 
 
@@ -15,7 +16,7 @@ const ASMTypeSize Compiler::asmDefaultTypeSize = ASMTypeSize::DWord;
 
 
 
-Compiler::Compiler(const std::vector<Statement*>& statements, const BitMode bitMode, const std::string& entryPoint) noexcept
+Compiler::Compiler(const std::vector<const Statement*>& statements, const BitMode bitMode, const std::string& entryPoint) noexcept
     : _statements(statements), _generalRegisters({
         Register{"rdi", ASMTypeSize::QWord}, Register{"edi", ASMTypeSize::DWord}, Register{"di", ASMTypeSize::Word}, Register{"dil", ASMTypeSize::Byte},
         Register{"rsi", ASMTypeSize::QWord}, Register{"esi", ASMTypeSize::DWord}, Register{"si", ASMTypeSize::Word}, Register{"sl", ASMTypeSize::Byte},
@@ -23,8 +24,17 @@ Compiler::Compiler(const std::vector<Statement*>& statements, const BitMode bitM
         Register{"rcx", ASMTypeSize::QWord}, Register{"ecx", ASMTypeSize::DWord}, Register{"cx", ASMTypeSize::Word}, Register{"cl", ASMTypeSize::Byte}
     })
 {
+    _astPrinter.setIgnoreBlocks(true);
+    _astPrinter.setNoNewlines(true);
+
+
+    _currentExpressionDepth = 0;
+
+
     _bitMode = bitMode;
     _entryPoint = entryPoint;
+
+    _shouldComment = false;
 }
 
 
@@ -47,6 +57,12 @@ const std::string& Compiler::entryPoint() const noexcept
 }
 
 
+bool Compiler::shouldComment() const noexcept
+{
+    return _shouldComment;
+}
+
+
 
 
 void Compiler::setBitmode(const BitMode bitMode) noexcept
@@ -61,6 +77,12 @@ void Compiler::setEntryPoint(const std::string& entryPoint) noexcept
 }
 
 
+void Compiler::setShouldComment(const bool shouldComment) noexcept
+{
+    _shouldComment = shouldComment;
+}
+
+
 
 
 void Compiler::compile()
@@ -70,6 +92,8 @@ void Compiler::compile()
     startLabel();
 
     finish();
+
+    println(_asm.get());
 }
 
 
@@ -93,12 +117,14 @@ void Compiler::startLabel()
     _start.enableIndent();
 
 
+    comment(_start, "init stack frame");
     _start.instruction("mov", "rbp", "rsp");
     _start.newline();
 
     _start.instruction("call", _entryPoint);
     _start.newline();
 
+    comment(_start, "syscall exit");
     _start.syscallExit(0);
 
 
@@ -131,7 +157,38 @@ void Compiler::finish()
 
 
     
-    _asm.insertOther(_funcs);
+    _asm.insertOther(_code);
+}
+
+
+
+
+
+void Compiler::comment(AssemblyGenerator& generator, const std::string& comment) noexcept
+{
+    if (_shouldComment)
+        generator.comment(comment);
+}
+
+void Compiler::instantComment(AssemblyGenerator& generator, const std::string& comment) noexcept
+{
+    if (_shouldComment)
+        generator.instantComment(comment);
+}
+
+
+
+void Compiler::moveToFreeRegister(const Register& reg, const std::string& data)
+{
+    _code.instruction("mov", reg.name, data);
+
+    pushRegisterToBusy(reg);
+}
+
+
+void Compiler::moveToFirstFreeRegisterOfSize(const ASMTypeSize size, const std::string& data)
+{
+    moveToFreeRegister(getFirstFreeRegisterOfSize(size), data);
 }
 
 
@@ -159,18 +216,23 @@ void Compiler::processDeclaration(const DeclarationStatement& statement)
 
 void Compiler::processFunctionDeclaration(const FunctionDeclarationStatement& statement)
 {
-    _funcs.label(statement.name.lexeme);
-    _funcs.enableIndent();
+    println("before:\n", _code.get());
+
+    instantComment(_code, "this is a test");
+    println("after:\n", _code.get());
+    
+    _code.label(statement.name.lexeme);
+    _code.enableIndent();
 
     processBlock(*statement.body);
 
-    _funcs.disableIndent();
+    _code.disableIndent();
 }
 
 
 void Compiler::processReturn(const ReturnStatement& statement)
 {
-    _funcs.instruction("ret");
+    _code.instruction("ret");
 }
 
 
@@ -183,9 +245,15 @@ void Compiler::processBlock(const BlockStatement& statement)
 
 
 
+
 void Compiler::process(const Expression& expression)
 {
+    if (_currentExpressionDepth == 0)
+        instantComment(_code, _astPrinter.print(expression));
+
+    _currentExpressionDepth++;
     expression.process(*this);
+    _currentExpressionDepth--;
 }
 
 
@@ -198,28 +266,63 @@ void Compiler::processLiteral(const LiteralExpression& expression)
 
 void Compiler::processBinary(const BinaryExpression& expression)
 {
-    process(*expression.left);
-    process(*expression.right);
+    bool leftProcessed = false;
+    bool rightProcessed = false;
 
-    // consume at reverse order
+    bool leftProcessedFirst = false;
+    bool rightProcessedFirst = false;
 
-    Register& right = popRegisterFromBusy();
-    Register& left = popRegisterFromBusy();
+    if (!dynamic_cast<const LiteralExpression*>(expression.left))
+    {
+        process(*expression.left);
+        leftProcessed = true;
 
-    // the result of a binary operation is stored at the left register,
-    // so it's needed to re-occupy it after consuming (freeing) to avoid
-    // the loss of the result
+        if (!rightProcessedFirst)
+            leftProcessedFirst = true;
+    }
     
+    if (!dynamic_cast<const LiteralExpression*>(expression.right))
+    {
+        process(*expression.right);
+        rightProcessed = true;
+
+        if (!leftProcessedFirst)
+            rightProcessedFirst = true;
+    }
+
+    if (!leftProcessed)
+    {
+        process(*expression.left);
+
+        if (!rightProcessedFirst)
+            leftProcessedFirst = true;
+    }
+
+    if (!rightProcessed)
+    {
+        process(*expression.right);
+
+        if (!leftProcessedFirst)
+            rightProcessedFirst = true;
+    }
+
+    const Register left = leftProcessedFirst ? popFirstRegisterFromBusy() : popLastRegisterFromBusy();
+    const Register right = leftProcessedFirst ? popFirstRegisterFromBusy() : popLastRegisterFromBusy();
+
+    // the result of a binary operation is stored in the left register,
+    // so it's needed to re-occupy it after consuming (freeing) it to avoid
+    // the loss of the result
+
     pushRegisterToBusy(left);
 
     switch (expression.op.type)
     {
     case TokenType::Plus:
-        _funcs.instruction("add", left.name, right.name);
+        _code.instruction("add", left.name, right.name);
         break;
 
     case TokenType::Minus:
-        _funcs.instruction("sub", left.name, right.name);
+        _code.instruction("sub", left.name, right.name);
         break;
 
     default:
@@ -237,23 +340,6 @@ void Compiler::processGrouping(const GroupingExpression& expression)
 void Compiler::processIdentifier(const IdentifierExpression& expression)
 {
 
-}
-
-
-
-
-
-void Compiler::moveToFreeRegister(Register& reg, const std::string& data)
-{
-    _funcs.instruction("mov", reg.name, data);
-
-    pushRegisterToBusy(reg);
-}
-
-
-void Compiler::moveToFirstFreeRegisterOfSize(const ASMTypeSize size, const std::string& data)
-{
-    moveToFreeRegister(getFirstFreeRegisterOfSize(size), data);
 }
 
 
@@ -280,43 +366,39 @@ void Compiler::pushRegisterToBusy(const Register& reg)
 }
 
 
-Register& Compiler::popRegisterFromBusy()
+Register Compiler::popLastRegisterFromBusy()
 {
     if (_busyRegisters.empty())
         throw internal_e0003();
 
-    Register& reg = *(_busyRegisters.end() - 1);
+    Register reg = _busyRegisters[_busyRegisters.size() - 1];
     _busyRegisters.pop_back();
 
     return reg;
 }
 
 
-
-Register& Compiler::getFirstFreeRegisterOfSize(const ASMTypeSize size)
+Register Compiler::popFirstRegisterFromBusy()
 {
-    for (Register& generalRegister : _generalRegisters)
-        if (!isRegisterBusy(generalRegister) && generalRegister.size == size)
-            return generalRegister;
+    if (_busyRegisters.empty())
+        throw internal_e0003();
+
+    Register reg = _busyRegisters[0];
+    _busyRegisters.erase(_busyRegisters.cbegin());
+
+    return reg;
 }
 
 
-// Register& Compiler::getLastBusyRegisterOfSize(const ASMTypeSize size)
-// {
-//     for (Register& generalRegister : _busyRegisters)
-//         if (isRegisterBusy(generalRegister) && generalRegister.size == size)
-//             return generalRegister;
-// }
 
+const Register& Compiler::getFirstFreeRegisterOfSize(const ASMTypeSize size)
+{
+    for (const Register& generalRegister : _generalRegisters)
+        if (!isRegisterBusy(generalRegister) && generalRegister.size == size)
+            return generalRegister;
 
-
-// Register& Compiler::consumeLastBusyRegisterOfSize(const ASMTypeSize size)
-// {
-//     Register& reg = getLastBusyRegisterOfSize(size);
-//     _busyRegisters.pop_back();
-
-//     return reg;
-// }
+    throw internal_e0005();
+}
 
 
 

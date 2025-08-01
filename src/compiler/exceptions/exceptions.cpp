@@ -102,3 +102,8 @@ InternalException internal_e0004() noexcept
 {
     return InternalException(4, "Register is already busy.");
 }
+
+InternalException internal_e0005() noexcept
+{
+    return InternalException(5, "This part of code was supposed to be unreachable.");
+}

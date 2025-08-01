@@ -28,8 +28,10 @@ struct GearOptions
     bool assemble;
     bool link;
 
+    bool commentAsm;
 
-    Compiler initializeCompilerFromThis(const std::vector<Statement*>& statements) const noexcept;
+
+    Compiler initializeCompilerFromThis(const std::vector<const Statement*>& statements) const noexcept;
 };
 
 
@@ -55,7 +57,7 @@ public:
     static void run(const GearOptions& options);
 
 private:
-    static std::string compile(const std::vector<Statement*>& statements);
+    static std::string compile(const std::vector<const Statement*>& statements);
     static std::filesystem::path assemble(const std::filesystem::path& file) noexcept;
     static std::filesystem::path link(const std::filesystem::path& file) noexcept;
 

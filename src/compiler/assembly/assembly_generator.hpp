@@ -43,6 +43,7 @@ public:
 
 
     void comment(const std::string& content) noexcept;
+    void instantComment(const std::string& content) noexcept;
 
     void label(const std::string& name) noexcept;
     void localLabel(const std::string& name) noexcept;

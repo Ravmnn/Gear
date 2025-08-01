@@ -13,12 +13,25 @@ private:
     std::stringstream _stream;
     unsigned int _indentDegree;
 
+    bool _ignoreBlocks;
+    bool _noNewlines;
+
 
 public:
-    ASTPrinter() = default;
+    ASTPrinter();
 
 
-    std::string print(const std::vector<Statement*>& statements) noexcept;
+    bool ignoreBlocks() const noexcept;
+    bool noNewlines() const noexcept;
+
+
+    void setIgnoreBlocks(bool ignoreBlocks) noexcept;
+    void setNoNewlines(bool noNewlines) noexcept;
+
+    
+    std::string print(const std::vector<const Statement*>& statements) noexcept;
+
+    std::string print(const Expression& expression) noexcept;
 
 
 private:
@@ -26,6 +39,7 @@ private:
     void decreaseIndent() noexcept;
 
     std::string indent() const noexcept;
+    std::string newlineChar() const noexcept;
 
     void beginStatement() noexcept;
     void endStatement() noexcept;

@@ -37,7 +37,7 @@ void AssemblyGenerator::newline(unsigned int amount) noexcept
 {
     if (!_comment.empty())
     {
-        _stream << "; " << _comment;
+        _stream << " ; " << _comment;
         _comment.clear();
     }
 
@@ -92,6 +92,12 @@ void AssemblyGenerator::nasmDirectiveGlobal(const std::string& identifier) noexc
 void AssemblyGenerator::comment(const std::string& content) noexcept
 {
     _comment = content;
+}
+
+void AssemblyGenerator::instantComment(const std::string& content) noexcept
+{
+    _stream << tab() << "; " << content;
+    newline();
 }
 
 

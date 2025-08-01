@@ -4,13 +4,60 @@
 
 
 
-std::string ASTPrinter::print(const std::vector<Statement*>& statements) noexcept
+ASTPrinter::ASTPrinter()
 {
-    _stream.clear();
+    _indentDegree = 0;
+    _ignoreBlocks = false;
+    _noNewlines = false;
+}
+
+
+
+bool ASTPrinter::ignoreBlocks() const noexcept
+{
+    return _ignoreBlocks;
+}
+
+
+bool ASTPrinter::noNewlines() const noexcept
+{
+    return _noNewlines;
+}
+
+
+
+
+
+void ASTPrinter::setIgnoreBlocks(const bool ignoreBlocks) noexcept
+{
+    _ignoreBlocks = ignoreBlocks;
+}
+
+
+void ASTPrinter::setNoNewlines(const bool noNewlines) noexcept
+{
+    _noNewlines = noNewlines;
+}
+
+
+
+std::string ASTPrinter::print(const std::vector<const Statement*>& statements) noexcept
+{
+    _stream = {};
 
     for (const Statement* const statement : statements)
         if (statement)
             statement->process(*this);
+
+    return _stream.str();
+}
+
+
+std::string ASTPrinter::print(const Expression& expression) noexcept
+{
+    _stream = {};
+
+    expression.process(*this);
 
     return _stream.str();
 }
@@ -54,6 +101,12 @@ std::string ASTPrinter::indent() const noexcept
 }
 
 
+std::string ASTPrinter::newlineChar() const noexcept
+{
+    return _noNewlines ? "" : "\n";
+}
+
+
 
 void ASTPrinter::beginStatement() noexcept
 {
@@ -62,7 +115,7 @@ void ASTPrinter::beginStatement() noexcept
 
 void ASTPrinter::endStatement() noexcept
 {
-    _stream << std::endl;
+    _stream << newlineChar();
 }
 
 
@@ -103,7 +156,7 @@ void ASTPrinter::processFunctionDeclaration(const FunctionDeclarationStatement& 
         _stream << parameter.name.lexeme << ": " << parameter.type.lexeme << (!atEnd ? ", " : "");
     }
 
-    _stream << ")" << " -> " << statement.returnType.lexeme << std::endl;
+    _stream << ")" << " -> " << statement.returnType.lexeme << newlineChar();
 
     processBlock(*statement.body);
     
@@ -124,8 +177,11 @@ void ASTPrinter::processReturn(const ReturnStatement& statement)
 
 void ASTPrinter::processBlock(const BlockStatement& statement)
 {
+    if (_ignoreBlocks)
+        return;
+
     beginStatement();
-    _stream << "start" << std::endl;
+    _stream << "start" << newlineChar();
     
     increaseIndent();
 

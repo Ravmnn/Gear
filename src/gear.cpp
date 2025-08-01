@@ -26,12 +26,16 @@ GearOptions::GearOptions() noexcept
     compile = true;
     assemble = true;
     link = true;
+
+    commentAsm = true;
 }
 
 
-Compiler GearOptions::initializeCompilerFromThis(const std::vector<Statement*>& statements) const noexcept
+Compiler GearOptions::initializeCompilerFromThis(const std::vector<const Statement*>& statements) const noexcept
 {
     Compiler compiler(statements, (BitMode)programBitMode, programEntryPoint);
+
+    compiler.setShouldComment(commentAsm);
 
     return compiler;
 }
@@ -86,6 +90,17 @@ const GearOptions& Gear::options() noexcept
 
 
 
+static std::vector<const Statement*> toConstStatements(const std::vector<Statement*>& statements) noexcept
+{
+    std::vector<const Statement*> constStatements;
+
+    for (const Statement* const statement : statements)
+        constStatements.push_back(statement);
+
+    return constStatements;
+}
+
+
 void Gear::run(const GearOptions& options)
 {
     s_source = readFile(options.filePath);
@@ -96,7 +111,7 @@ void Gear::run(const GearOptions& options)
     if (failed())
         return;
 
-    const std::vector<Statement*> statements = Parser(tokens).parse();
+    const std::vector<const Statement*> statements = toConstStatements(Parser(tokens).parse());
 
     if (failed())
         return;
@@ -132,7 +147,7 @@ void Gear::run(const GearOptions& options)
 
 
 
-std::string Gear::compile(const std::vector<Statement*>& statements)
+std::string Gear::compile(const std::vector<const Statement*>& statements)
 {
     const GearOptions& options = Gear::options();
 

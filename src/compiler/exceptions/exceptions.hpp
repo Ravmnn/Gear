@@ -33,3 +33,4 @@ InternalException internal_e0001() noexcept;
 InternalException internal_e0002() noexcept;
 InternalException internal_e0003() noexcept;
 InternalException internal_e0004() noexcept;
+InternalException internal_e0005() noexcept;

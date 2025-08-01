@@ -6,6 +6,7 @@
 #include <compiler/assembly/assembly_generator.hpp>
 #include <compiler/language/statement.hpp>
 #include <compiler/language/expression.hpp>
+#include <compiler/language/ast_printer.hpp>
 #include <compiler/registers.hpp>
 #include <compiler/sizes.hpp>
 
@@ -19,17 +20,25 @@ private:
 
     AssemblyGenerator _data;
     AssemblyGenerator _start;
-    AssemblyGenerator _funcs;
+    AssemblyGenerator _code;
+
+    ASTPrinter _astPrinter;
 
     std::array<Register, 16> _generalRegisters;
     std::vector<Register> _busyRegisters;
 
+    unsigned int _currentExpressionDepth;
 
-    const std::vector<Statement*> _statements;
+    // TODO: make registers completely constant
+
+
+    const std::vector<const Statement*> _statements;
 
 
     BitMode _bitMode;
     std::string _entryPoint;
+
+    bool _shouldComment;
 
 
 public:
@@ -39,17 +48,19 @@ public:
     static const ASMTypeSize asmDefaultTypeSize;
 
 
-    Compiler(const std::vector<Statement*>& statements, BitMode bitMode, const std::string& entryPoint) noexcept;
+    Compiler(const std::vector<const Statement*>& statements, BitMode bitMode, const std::string& entryPoint) noexcept;
 
 
     AssemblyGenerator& assembly() noexcept;
 
     BitMode bitMode() const noexcept;
     const std::string& entryPoint() const noexcept;
+    bool shouldComment() const noexcept;
 
 
     void setBitmode(BitMode bitMode) noexcept;
     void setEntryPoint(const std::string& entryPoint) noexcept;
+    void setShouldComment(bool shouldComment) noexcept;
 
 
     void compile();
@@ -61,6 +72,14 @@ private:
     void startLabel();
 
     void finish();
+
+
+    void comment(AssemblyGenerator& generator, const std::string& comment) noexcept;
+    void instantComment(AssemblyGenerator& generator, const std::string& comment) noexcept;
+
+
+    void moveToFreeRegister(const Register& reg, const std::string& data);
+    void moveToFirstFreeRegisterOfSize(ASMTypeSize size, const std::string& data);
 
 
     void process(const Statement& statement);
@@ -80,19 +99,13 @@ private:
     void processIdentifier(const IdentifierExpression& expression) override;
 
 
-    void moveToFreeRegister(Register& reg, const std::string& data);
-    void moveToFirstFreeRegisterOfSize(ASMTypeSize size, const std::string& data);
-
-
     bool isRegisterBusy(const Register& reg) const noexcept;
 
     void pushRegisterToBusy(const Register& reg);
-    Register& popRegisterFromBusy();
+    Register popLastRegisterFromBusy();
+    Register popFirstRegisterFromBusy();
 
-    Register& getFirstFreeRegisterOfSize(ASMTypeSize size);
-    //Register& getLastBusyRegisterOfSize(ASMTypeSize size);
-
-    //Register& consumeLastBusyRegisterOfSize(ASMTypeSize size);
+    const Register& getFirstFreeRegisterOfSize(ASMTypeSize size);
 
 
     static TypeSize stringToTypeSize(const std::string& type);
