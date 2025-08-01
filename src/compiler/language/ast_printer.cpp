@@ -64,7 +64,52 @@ std::string ASTPrinter::print(const Expression& expression) noexcept
 
 
 
+void ASTPrinter::parenthesize(const Expression* const expression)
+{
+    _stream << "(";
+
+    expression->process(*this);
+
+    _stream << ")";
+}
+
+
 void ASTPrinter::stringify(const std::string& name, const std::vector<const Expression*>& expressions)
+{
+    if (expressions.size() == 1)
+        unaryStringify(name, expressions[0]);
+
+    else if (expressions.size() == 2)
+        binaryStringify(name, expressions[0], expressions[1]);
+
+    else if (expressions.size() >= 2)
+        multiOperandStringify(name, expressions);
+}
+
+
+void ASTPrinter::unaryStringify(const std::string& name, const Expression* const operand)
+{
+    _stream << "(" << name << " ";
+
+    operand->process(*this);
+
+    _stream << ")";
+}
+
+
+void ASTPrinter::binaryStringify(const std::string& name, const Expression* const left, const Expression* const right)
+{
+    _stream << "(";
+    left->process(*this);
+
+    _stream << ' ' << name << ' ';
+
+    right->process(*this);
+    _stream << ")";
+}
+
+
+void ASTPrinter::multiOperandStringify(const std::string& name, const std::vector<const Expression*>& expressions)
 {
     _stream << "(" << name;
 
@@ -212,7 +257,7 @@ void ASTPrinter::processBinary(const BinaryExpression& expression)
 
 void ASTPrinter::processGrouping(const GroupingExpression& expression)
 {
-    stringify("group", { expression.expression });
+    parenthesize(expression.expression);
 }
 
 

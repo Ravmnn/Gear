@@ -24,7 +24,7 @@ private:
 
     ASTPrinter _astPrinter;
 
-    std::array<Register, 16> _generalRegisters;
+    std::array<Register, 32> _generalRegisters;
     std::vector<Register> _busyRegisters;
 
     unsigned int _currentExpressionDepth;
@@ -106,6 +106,9 @@ private:
     Register popFirstRegisterFromBusy();
 
     const Register& getFirstFreeRegisterOfSize(ASMTypeSize size);
+
+
+    void freeAllBusyRegisters() noexcept;
 
 
     static TypeSize stringToTypeSize(const std::string& type);

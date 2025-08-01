@@ -105,5 +105,5 @@ InternalException internal_e0004() noexcept
 
 InternalException internal_e0005() noexcept
 {
-    return InternalException(5, "This part of code was supposed to be unreachable.");
+    return InternalException(5, "There are no free registers.");
 }

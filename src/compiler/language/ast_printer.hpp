@@ -44,7 +44,14 @@ private:
     void beginStatement() noexcept;
     void endStatement() noexcept;
 
+    void parenthesize(const Expression* expression);
+
     void stringify(const std::string& name, const std::vector<const Expression*>& expressions);
+
+    void unaryStringify(const std::string& name, const Expression* operand);
+    void binaryStringify(const std::string& name, const Expression* left, const Expression* right);
+    
+    void multiOperandStringify(const std::string& name, const std::vector<const Expression*>& expressions);
 
 
 
