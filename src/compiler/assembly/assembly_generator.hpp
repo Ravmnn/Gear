@@ -55,4 +55,7 @@ public:
 
     void syscall(const std::string& code, const std::string& arg1 = "", const std::string& arg2 = "", const std::string& arg3 = "") noexcept;
     void syscallExit(unsigned int exitCode) noexcept;
+
+
+    static std::string addressing(const std::string& reg, int displacement = 0) noexcept;
 };

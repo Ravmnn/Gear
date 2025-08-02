@@ -1,5 +1,11 @@
-function main() -> int16
+function main() -> int32
 start
+    decl number1: int32 = 53;
+    decl number2: int32 = 100;
+
+    decl result: int32 = number1 + number2;
+
+    result;
 
     return 0;
 end

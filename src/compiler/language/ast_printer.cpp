@@ -53,6 +53,16 @@ std::string ASTPrinter::print(const std::vector<const Statement*>& statements) n
 }
 
 
+std::string ASTPrinter::print(const Statement& statement) noexcept
+{
+    _stream = {};
+
+    statement.process(*this);
+
+    return _stream.str();
+}
+
+
 std::string ASTPrinter::print(const Expression& expression) noexcept
 {
     _stream = {};

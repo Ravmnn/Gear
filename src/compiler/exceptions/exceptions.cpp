@@ -90,6 +90,21 @@ CompilerException gear_e3000(const TokenPosition& position) noexcept
     return CompilerException(0, "File scope should only contain function declarations.", position);
 }
 
+CompilerException gear_e3001(const TokenPosition& position) noexcept
+{
+    return CompilerException(1, "Undefined identifer.", position);
+}
+
+CompilerException gear_e3002(const TokenPosition& position) noexcept
+{
+    return CompilerException(2, "Identifier is already defined.", position);
+}
+
+CompilerException gear_e3003(const TokenPosition& position) noexcept
+{
+    return CompilerException(3, "Functions should only be declared at file scope.", position);
+}
+
 
 
 

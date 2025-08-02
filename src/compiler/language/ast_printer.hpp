@@ -31,6 +31,7 @@ public:
     
     std::string print(const std::vector<const Statement*>& statements) noexcept;
 
+    std::string print(const Statement& statement) noexcept;
     std::string print(const Expression& expression) noexcept;
 
 

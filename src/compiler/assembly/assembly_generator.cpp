@@ -167,3 +167,22 @@ void AssemblyGenerator::syscallExit(const unsigned int exitCode) noexcept
 {
     syscall("60", std::to_string(exitCode));
 }
+
+
+
+
+
+std::string AssemblyGenerator::addressing(const std::string& reg, const int displacement) noexcept
+{
+    std::stringstream stream;
+    const bool hasDisplacement = displacement != 0;
+
+    stream << '[' << reg;
+    
+    if (hasDisplacement)
+        stream << (displacement < 0 ? " - " : " + ") << displacement;
+    
+    stream << ']';
+
+    return stream.str();
+}

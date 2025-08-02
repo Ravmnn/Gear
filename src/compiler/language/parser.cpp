@@ -170,7 +170,7 @@ Statement* Parser::block()
     const Token& start = expect(TokenType::KwStart, gear_e2010(peek().position));
 
     while (!atEnd() && !check(TokenType::KwEnd))
-        block.push_back(statement());
+        block.push_back(declaration());
 
     const Token& end = expect(TokenType::KwEnd, gear_e2011(peek().position));
 

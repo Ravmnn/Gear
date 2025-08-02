@@ -1,12 +1,10 @@
 #pragma once
 
 #include <array>
-#include <stack>
 
 #include <compiler/assembly/assembly_generator.hpp>
-#include <compiler/language/statement.hpp>
-#include <compiler/language/expression.hpp>
 #include <compiler/language/ast_printer.hpp>
+#include <compiler/identifier.hpp>
 #include <compiler/registers.hpp>
 #include <compiler/sizes.hpp>
 
@@ -27,7 +25,10 @@ private:
     std::array<Register, 32> _generalRegisters;
     std::vector<Register> _busyRegisters;
 
+    std::vector<Identifier> _identifiers;
+
     unsigned int _currentExpressionDepth;
+    unsigned int _currentStatementDepth;
 
 
     const std::vector<const Statement*> _statements;
@@ -44,6 +45,9 @@ public:
 
     static const TypeSize defaultTypeSize;
     static const ASMTypeSize asmDefaultTypeSize;
+
+    static const std::string stackPointerRegister;
+    static const std::string stackFrameRegister;
 
 
     Compiler(const std::vector<const Statement*>& statements, BitMode bitMode, const std::string& entryPoint) noexcept;
@@ -82,6 +86,16 @@ private:
     void moveToFreeRegister(const Register& reg, const std::string& data);
     void moveToFirstFreeRegisterOfSize(ASMTypeSize size, const std::string& data);
 
+    void allocateIdentifierOnStack(const Identifier& identifier, const std::string& value = "0");
+
+
+    void stackFrameBegin() noexcept;
+    void stackFrameEnd() noexcept;
+
+
+    unsigned int addressDisplacementOfIdentifierOnStack(const Identifier& identifier) const;
+    std::string addressOfIdentifierOnStack(const Identifier& identifier) const;
+
 
     void process(const Statement& statement);
 
@@ -100,16 +114,23 @@ private:
     void processIdentifier(const IdentifierExpression& expression) override;
 
 
-    bool isRegisterBusy(const Register& reg) const noexcept;
+    bool isRegisterBusy(const std::string& reg) const noexcept;
 
     void pushRegisterToBusy(const Register& reg);
     Register popLastRegisterFromBusy();
-    Register popFirstRegisterFromBusy();
 
     const Register& getFirstFreeRegisterOfSize(ASMTypeSize size);
 
 
     void freeAllBusyRegisters() noexcept;
+
+
+    bool isIdentifierDefined(const std::string& identifier) const noexcept;
+
+    void defineIdentifier(const Identifier& identifier);
+    
+    Identifier getIdentifier(const Token& identifier) const;
+
 
 
     static TypeSize stringToTypeSize(const std::string& type);
