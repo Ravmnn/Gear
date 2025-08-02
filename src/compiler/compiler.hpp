@@ -72,6 +72,9 @@ private:
     void finish();
 
 
+    void throwIfAnyNullStatement(const std::vector<const Statement*>& statements) const;
+
+
     void comment(AssemblyGenerator& generator, const std::string& comment) noexcept;
     void instantComment(AssemblyGenerator& generator, const std::string& comment) noexcept;
 

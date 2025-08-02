@@ -25,6 +25,7 @@ class Expression
 {
 public:
     virtual void process(ExpressionProcessor& processor) const = 0;
+    virtual const Token& source() const noexcept = 0;
 };
 
 
@@ -39,6 +40,9 @@ public:
 
 
     void process(ExpressionProcessor& processor) const override;
+    
+
+    const Token& source() const noexcept override;
 };
 
 
@@ -55,6 +59,9 @@ public:
 
 
     void process(ExpressionProcessor& processor) const override;
+
+
+    const Token& source() const noexcept override;
 };
 
 
@@ -69,6 +76,9 @@ public:
 
 
     void process(ExpressionProcessor& processor) const override;
+
+
+    const Token& source() const noexcept override;
 };
 
 
@@ -83,4 +93,7 @@ public:
 
 
     void process(ExpressionProcessor& processor) const override;
+
+
+    const Token& source() const noexcept override;
 };

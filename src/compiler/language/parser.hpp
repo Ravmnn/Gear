@@ -29,6 +29,7 @@ public:
 
 private:
     Statement* declaration();
+    
     Statement* variableDeclaration();
 
     Statement* functionDeclaration();

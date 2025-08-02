@@ -41,8 +41,8 @@ Statement* Parser::declaration()
 {
     switch (peek().type)
     {
-    case TokenType::KwDeclare: return variableDeclaration();
     case TokenType::KwFunction: return functionDeclaration();
+    case TokenType::KwDeclare: return variableDeclaration();
 
     default:
         return statement();
@@ -50,40 +50,46 @@ Statement* Parser::declaration()
 }
 
 
+
+
+
 Statement* Parser::variableDeclaration()
 {
-    advance();
+    const Token& keyword = advance();
 
     const Token name = expectIdentifier();
-    expect(TokenType::Colon, gear_e2002(previous().position));
+    expect(TokenType::Colon, gear_e2002(peek().position));
     const Token type = expectTypename();
-    expect(TokenType::Equal, gear_e2004(previous().position));
+    expect(TokenType::Equal, gear_e2004(peek().position));
     
     const Expression* const value = expression();
 
     expectEndOfStatement();
 
-    return new DeclarationStatement(name, type, value);
+    return new DeclarationStatement(keyword, name, type, value);
 }
+
+
+
 
 
 Statement* Parser::functionDeclaration()
 {
-    advance();
+    const Token& keyword = advance();
 
     const Token name = expectIdentifier();
     std::vector<FunctionParameterDeclaration> parameters;
 
-    expect(TokenType::ParenLeft, gear_e2007(previous().position));
+    expect(TokenType::ParenLeft, gear_e2007(peek().position));
     parameters = functionParameters();
-    expect(TokenType::ParenRight, gear_e2008(previous().position));
+    expect(TokenType::ParenRight, gear_e2008(peek().position));
 
-    expect(TokenType::Arrow, gear_e2009(previous().position));
-    const Token returnType = expect(TokenType::Type, gear_e2003(previous().position));
+    expect(TokenType::Arrow, gear_e2009(peek().position));
+    const Token returnType = expect(TokenType::Type, gear_e2003(peek().position));
 
     const BlockStatement* body = dynamic_cast<BlockStatement*>(block());
 
-    return new FunctionDeclarationStatement(name, parameters, returnType, body);
+    return new FunctionDeclarationStatement(keyword, name, parameters, returnType, body);
 }
 
 
@@ -95,7 +101,7 @@ std::vector<FunctionParameterDeclaration> Parser::functionParameters()
         do
         {
             const Token name = expectIdentifier();
-            expect(TokenType::Colon, gear_e2002(previous().position));
+            expect(TokenType::Colon, gear_e2002(peek().position));
             const Token type = expectTypename();
 
             parameters.push_back(FunctionParameterDeclaration{ name, type });
@@ -116,6 +122,20 @@ Statement* Parser::statement()
     case TokenType::KwStart: return block();
     case TokenType::KwReturn: return returnStatement();
 
+    // some tokens only make sense when together with another,
+    // but parser exceptions may break that "together", leaving those
+    // tokens without any processing. To avoid unnecessary error messages,
+    // some tokens should be ignored:
+
+    case TokenType::KwEnd:
+        advance();
+
+        if (failed()) // something already went wrong, ignore
+            return nullptr;
+
+        throw gear_e2012(peek().position);
+
+
     default:
         return expressionStatement();
     }
@@ -133,12 +153,12 @@ Statement* Parser::expressionStatement()
 
 Statement* Parser::returnStatement()
 {
-    advance();
+    const Token& keyword = advance();
 
     const Expression* const expression = this->expression();
     expectEndOfStatement();
 
-    return new ReturnStatement(expression);
+    return new ReturnStatement(keyword, expression);
 }
 
 
@@ -147,14 +167,14 @@ Statement* Parser::block()
 {
     std::vector<Statement*> block;
 
-    expect(TokenType::KwStart, gear_e2010(previous().position));
+    const Token& start = expect(TokenType::KwStart, gear_e2010(peek().position));
 
     while (!atEnd() && !check(TokenType::KwEnd))
-        block.push_back(declaration());
+        block.push_back(statement());
 
-    expect(TokenType::KwEnd, gear_e2011(previous().position));
+    const Token& end = expect(TokenType::KwEnd, gear_e2011(peek().position));
 
-    return new BlockStatement(block);
+    return new BlockStatement(start, end, block);
 }
 
 
@@ -206,7 +226,7 @@ Expression* Parser::primary()
     if (match({ TokenType::ParenLeft }))
         return parseGroupExpression();
 
-    throw gear_e2006(atEnd() ? previous().position : peek().position);
+    throw gear_e2006(peek().position);
 }
 
 
@@ -261,19 +281,19 @@ const Token& Parser::expect(const TokenType token, const ParserException& except
 
 const Token& Parser::expectEndOfStatement()
 {
-    return expect(TokenType::SemiColon, gear_e2000(previous().position));
+    return expect(TokenType::SemiColon, gear_e2000(peek().position));
 }
 
 
 
 const Token& Parser::expectIdentifier()
 {
-    return expect(TokenType::Identifier, gear_e2001(previous().position));
+    return expect(TokenType::Identifier, gear_e2001(peek().position));
 }
 
 const Token& Parser::expectTypename()
 {
-    return expect(TokenType::Type, gear_e2003(previous().position));
+    return expect(TokenType::Type, gear_e2003(peek().position));
 }
 
 

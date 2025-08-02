@@ -91,6 +91,8 @@ void Compiler::setShouldComment(const bool shouldComment) noexcept
 
 void Compiler::compile()
 {
+    throwIfAnyNullStatement(_statements);
+
     functionDeclarations();
 
     startLabel();
@@ -107,6 +109,8 @@ void Compiler::functionDeclarations()
 
         if (function)
             processFunctionDeclaration(*function);
+        else
+            throw gear_e3000(statement->source().position);
     }
 }
 
@@ -160,6 +164,17 @@ void Compiler::finish()
 
     
     _asm.insertOther(_code);
+}
+
+
+
+
+
+void Compiler::throwIfAnyNullStatement(const std::vector<const Statement*>& statements) const
+{
+    for (const Statement* const statement : statements)
+        if (!statement)
+            throw internal_e0002();
 }
 
 

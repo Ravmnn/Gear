@@ -30,6 +30,7 @@ class Statement
 {
 public:
     virtual void process(StatementProcessor& processor) const = 0;
+    virtual const Token& source() const noexcept = 0;
 };
 
 
@@ -44,6 +45,9 @@ public:
 
 
     void process(StatementProcessor& processor) const override;
+
+
+    const Token& source() const noexcept override;
 };
 
 
@@ -51,8 +55,10 @@ public:
 class DeclarationStatement : public Statement
 {
 public:
-    DeclarationStatement(const Token& name, const Token& type, const Expression* value) noexcept;
+    DeclarationStatement(const Token& keyword, const Token& name, const Token& type, const Expression* value) noexcept;
 
+
+    const Token keyword;
 
     const Token name;
     const Token type;
@@ -60,6 +66,9 @@ public:
 
 
     void process(StatementProcessor& processor) const override;
+
+
+    const Token& source() const noexcept override;
 };
 
 
@@ -74,10 +83,12 @@ struct FunctionParameterDeclaration
 class FunctionDeclarationStatement : public Statement
 {
 public:
-    FunctionDeclarationStatement(const Token& name, const std::vector<FunctionParameterDeclaration>& parameters,
+    FunctionDeclarationStatement(const Token& keyword, const Token& name, const std::vector<FunctionParameterDeclaration>& parameters,
         const Token& returnType, const BlockStatement* body) noexcept;
 
     
+    const Token keyword;
+
     const Token name;
     const std::vector<FunctionParameterDeclaration> parameters;
     const Token returnType;
@@ -85,6 +96,9 @@ public:
 
 
     void process(StatementProcessor& processor) const override;
+
+
+    const Token& source() const noexcept override;
 };
 
 
@@ -92,13 +106,18 @@ public:
 class ReturnStatement : public Statement
 {
 public:
-    ReturnStatement(const Expression* expression) noexcept;
+    ReturnStatement(const Token& keyword, const Expression* expression) noexcept;
 
+
+    const Token keyword;
 
     const Expression* const expression;
 
 
     void process(StatementProcessor& processor) const override;
+
+
+    const Token& source() const noexcept override;
 };
 
 
@@ -106,11 +125,17 @@ public:
 class BlockStatement : public Statement
 {
 public:
-    BlockStatement(const std::vector<Statement*>& statements) noexcept;
+    BlockStatement(const Token& start, const Token& end, const std::vector<Statement*>& statements) noexcept;
 
+
+    const Token start;
+    const Token end;
 
     const std::vector<Statement*> statements;
 
 
     void process(StatementProcessor& processor) const override;
+
+
+    const Token& source() const noexcept override;
 };

@@ -1,6 +1,5 @@
 function main() -> int16
 start
-    1 + 2 - (1 + 1);
 
     return 0;
 end

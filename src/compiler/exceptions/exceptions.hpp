@@ -25,6 +25,11 @@ ParserException gear_e2008(const TokenPosition& position) noexcept;
 ParserException gear_e2009(const TokenPosition& position) noexcept;
 ParserException gear_e2010(const TokenPosition& position) noexcept;
 ParserException gear_e2011(const TokenPosition& position) noexcept;
+ParserException gear_e2012(const TokenPosition& position) noexcept;
+
+
+
+CompilerException gear_e3000(const TokenPosition& position) noexcept;
 
 
 

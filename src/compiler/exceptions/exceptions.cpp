@@ -15,6 +15,7 @@ ScannerException gear_e1001(const TokenPosition& position) noexcept
 
 
 
+
 ParserException gear_e2000(const TokenPosition& position) noexcept
 {
     return ParserException(0, "Expect \";\" after statement.", position);
@@ -74,6 +75,21 @@ ParserException gear_e2011(const TokenPosition& position) noexcept
 {
     return ParserException(11, "Unclosed block statement.", position);
 }
+
+ParserException gear_e2012(const TokenPosition& position) noexcept
+{
+    return ParserException(12, "Wrong keyword placement.", position);
+}
+
+
+
+
+
+CompilerException gear_e3000(const TokenPosition& position) noexcept
+{
+    return CompilerException(0, "File scope should only contain function declarations.", position);
+}
+
 
 
 

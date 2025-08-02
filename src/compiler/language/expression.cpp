@@ -13,6 +13,12 @@ void LiteralExpression::process(ExpressionProcessor& processor) const
 }
 
 
+const Token& LiteralExpression::source() const noexcept
+{
+    return value;
+}
+
+
 
 BinaryExpression::BinaryExpression(const Expression* const left, const Token& op, const Expression* const right) noexcept
     : left(left), op(op), right(right)
@@ -23,6 +29,13 @@ void BinaryExpression::process(ExpressionProcessor& processor) const
 {
     processor.processBinary(*this);
 }
+
+
+const Token& BinaryExpression::source() const noexcept
+{
+    return op;
+}
+
 
 
 
@@ -37,6 +50,13 @@ void GroupingExpression::process(ExpressionProcessor& processor) const
 }
 
 
+const Token& GroupingExpression::source() const noexcept
+{
+    return expression->source();
+}
+
+
+
 
 IdentifierExpression::IdentifierExpression(const Token& identifier) noexcept
     : identifier(identifier)
@@ -46,4 +66,10 @@ IdentifierExpression::IdentifierExpression(const Token& identifier) noexcept
 void IdentifierExpression::process(ExpressionProcessor& processor) const
 {
     processor.processIdentifier(*this);
+}
+
+
+const Token& IdentifierExpression::source() const noexcept
+{
+    return identifier;
 }
