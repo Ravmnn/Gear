@@ -29,8 +29,6 @@ private:
 
     unsigned int _currentExpressionDepth;
 
-    // TODO: make registers completely constant
-
 
     const std::vector<const Statement*> _statements;
 

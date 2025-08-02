@@ -53,10 +53,9 @@ class DeclarationStatement : public Statement
 public:
     DeclarationStatement(const Token& name, const Token& type, const Expression* value) noexcept;
 
-    // TODO: eveything may be "const"
 
-    Token name;
-    Token type;
+    const Token name;
+    const Token type;
     const Expression* const value;
 
 
@@ -67,8 +66,8 @@ public:
 
 struct FunctionParameterDeclaration
 {
-    Token name;
-    Token type;
+    const Token name;
+    const Token type;
 };
 
 
@@ -79,9 +78,9 @@ public:
         const Token& returnType, const BlockStatement* body) noexcept;
 
     
-    Token name;
-    std::vector<FunctionParameterDeclaration> parameters;
-    Token returnType;
+    const Token name;
+    const std::vector<FunctionParameterDeclaration> parameters;
+    const Token returnType;
     const BlockStatement* const body;
 
 
@@ -110,7 +109,7 @@ public:
     BlockStatement(const std::vector<Statement*>& statements) noexcept;
 
 
-    std::vector<Statement*> statements;
+    const std::vector<Statement*> statements;
 
 
     void process(StatementProcessor& processor) const override;

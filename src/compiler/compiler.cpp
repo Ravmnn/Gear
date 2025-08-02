@@ -367,7 +367,7 @@ void Compiler::pushRegisterToBusy(const Register& reg)
     if (isRegisterBusy(reg))
         throw internal_e0004();
 
-    _busyRegisters.push_back(reg);
+    _busyRegisters.push_back(reg);  
 }
 
 

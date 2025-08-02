@@ -35,7 +35,7 @@ public:
     explicit LiteralExpression(const Token& value) noexcept;
 
 
-    Token value;
+    const Token value;
 
 
     void process(ExpressionProcessor& processor) const override;
@@ -50,7 +50,7 @@ public:
 
 
     const Expression* const left;
-    Token op;
+    const Token op;
     const Expression* const right;
 
 
@@ -79,7 +79,7 @@ public:
     explicit IdentifierExpression(const Token& identifier) noexcept;
 
 
-    Token identifier;
+    const Token identifier;
 
 
     void process(ExpressionProcessor& processor) const override;
