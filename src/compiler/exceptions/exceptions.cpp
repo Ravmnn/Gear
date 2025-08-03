@@ -1,5 +1,7 @@
 #include <compiler/exceptions/exceptions.hpp>
 
+#include <sstream>
+
 
 
 ScannerException gear_e1000(const TokenPosition& position) noexcept
@@ -105,36 +107,47 @@ CompilerException gear_e3003(const TokenPosition& position) noexcept
     return CompilerException(3, "Functions should only be declared at file scope.", position);
 }
 
-
-
-
-
-InternalException internal_e0000() noexcept
+CompilerException gear_e3004(const TokenPosition& position) noexcept
 {
-    return InternalException(0, "Invalid type name.");
+    return CompilerException(4, "Operation depth is too complex and big, overpassed max register count.", position);
 }
+
+
+
+
+
+InternalException internal_e0000(const std::string& info) noexcept
+{
+    std::stringstream stream;
+
+    stream << "Bad API usage.";
+    stream << " " << '(' << info << ')';
+
+    return InternalException(0, stream.str());
+}
+
+InternalException internal_e0000_nullptr() noexcept
+{
+    return internal_e0000("Unexpected nullptr.");
+}
+
+InternalException internal_e0000_argument() noexcept
+{
+    return internal_e0000("Invalid argument.");
+}
+
 
 InternalException internal_e0001() noexcept
 {
-    return InternalException(1, "Invalid binary operator.");
+    return InternalException(1, "There are no busy registers.");
 }
 
 InternalException internal_e0002() noexcept
 {
-    return InternalException(2, "Unexpected null pointer.");
+    return InternalException(2, "Register is already busy.");
 }
 
 InternalException internal_e0003() noexcept
 {
-    return InternalException(3, "There are no busy registers.");
-}
-
-InternalException internal_e0004() noexcept
-{
-    return InternalException(4, "Register is already busy.");
-}
-
-InternalException internal_e0005() noexcept
-{
-    return InternalException(5, "There are no free registers.");
+    return InternalException(3, "There are no free registers.");
 }

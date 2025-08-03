@@ -21,6 +21,7 @@ _start:
 
 
 
+; function main() -> int32
 main:
     ; stack frame begin
     push rbp
@@ -38,10 +39,14 @@ main:
     sub rsp, 4
     mov [rsp], edi
 
-    ; result: int32 = ($number1 + $number2)
+    ; result: int32 = ((($number1 + $number2)) - ((10 - 5)))
     mov edi, [rsp + 4]
     mov esi, [rsp]
     add edi, esi
+    mov esi, 10
+    mov edx, 5
+    sub esi, edx
+    sub edi, esi
     sub rsp, 4
     mov [rsp], edi
 
@@ -49,6 +54,7 @@ main:
     mov edi, [rsp]
 
     ; return 0
+    mov edi, 0
 
     ; stack frame end
     sub rbp, 16
@@ -56,3 +62,4 @@ main:
     pop rbp
 
     ret
+

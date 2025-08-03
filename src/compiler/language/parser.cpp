@@ -7,8 +7,6 @@
 #include <gear.hpp>
 
 
-// TODO: add exception: functions must be declared in file scope.
-
 
 Parser::Parser(const std::vector<Token>& tokens) noexcept
     : _tokens(tokens), _current(0)

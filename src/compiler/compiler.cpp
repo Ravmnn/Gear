@@ -57,6 +57,9 @@ Compiler::Compiler(const std::vector<const Statement*>& statements, const BitMod
     _currentExpressionDepth = 0;
     _currentStatementDepth = 0;
 
+    _currentExpression = nullptr;
+    _currentStatement = nullptr;
+
 
     _bitMode = bitMode;
     _entryPoint = entryPoint;
@@ -111,31 +114,54 @@ void Compiler::setShouldComment(const bool shouldComment) noexcept
 
 
 
+void Compiler::resetDepth() noexcept
+{
+    _currentExpressionDepth = _currentStatementDepth = 0;
+}
+
+
+
 
 void Compiler::compile()
 {
     throwIfAnyNullStatement(_statements);
-
-    functionDeclarations();
-
+    
+    code();
     startLabel();
-
-    finish();
+    finish();   
 }
 
 
-void Compiler::functionDeclarations()
+void Compiler::code()
 {
     for (const Statement* const statement : _statements)
     {
         const FunctionDeclarationStatement* function = dynamic_cast<const FunctionDeclarationStatement*>(statement);
 
-        // TODO: change to "process" and use instantNewline only in "process" (statement)
+        try
+        {
+            if (function)
+                process(*function);
+            else
+                throw gear_e3000(statement->source().position);
+        }
 
-        if (function)
-            processFunctionDeclaration(*function);
-        else
-            throw gear_e3000(statement->source().position);
+        catch (const CompilerException& exception)
+        {
+            // when a compiler error occurs, the function being compiled is ignored
+
+            error(&exception);
+        }
+
+        catch (const InternalException& exception)
+        {
+            const CompilerException newException = internalException5ToCompilerException(exception);
+            error(&newException);
+        }
+
+        // security reset, in case of an exception
+        resetDepth();
+        freeAllBusyRegisters();
     }
 }
 
@@ -195,11 +221,26 @@ void Compiler::finish()
 
 
 
+CompilerException Compiler::internalException5ToCompilerException(const InternalException& exception) const
+{
+    if (!_currentExpression && !_currentStatement)
+        throw internal_e0000_nullptr();
+
+    const TokenPosition& position =
+                _currentExpression ? _currentExpression->source().position : _currentStatement->source().position;
+
+    if (exception.id() == internal_e0003().id())
+        return gear_e3004(position);
+
+    throw internal_e0000_argument();
+}
+
+
 void Compiler::throwIfAnyNullStatement(const std::vector<const Statement*>& statements) const
 {
     for (const Statement* const statement : statements)
         if (!statement)
-            throw internal_e0002();
+            throw internal_e0000_nullptr();
 }
 
 
@@ -273,8 +314,6 @@ void Compiler::stackFrameEnd() noexcept
 
 unsigned int Compiler::addressDisplacementOfIdentifierOnStack(const Identifier& identifier) const
 {
-    // TODO: exceptions that repeat a lot should be simplified in exceptions.hpp by creating a function
-
     if (!isIdentifierDefined(identifier.name))
         throw gear_e3001(identifier.position);
 
@@ -309,9 +348,14 @@ void Compiler::process(const Statement& statement)
 {
     instantComment(_code, _astPrinter.print(statement));
 
+    const Statement* oldStatement = _currentStatement;
+    _currentStatement = &statement;
+
     _currentStatementDepth++;
     statement.process(*this);
     _currentStatementDepth--;
+
+    _currentStatement = oldStatement;
 
     _code.newline();
 
@@ -329,9 +373,7 @@ void Compiler::processExpression(const ExpressionStatement& statement)
 void Compiler::processDeclaration(const DeclarationStatement& statement)
 {
     const ASMTypeSize size = (ASMTypeSize)stringToTypeSize(statement.type.lexeme);
-    
-    process(*statement.value);
-    const std::string value = popLastRegisterFromBusy().name;
+    const std::string value = getValueOfExpression(*statement.value);
 
     allocateIdentifierOnStack(Identifier{ statement.name.lexeme, size, statement.name.position }, value);
 }
@@ -339,7 +381,9 @@ void Compiler::processDeclaration(const DeclarationStatement& statement)
 
 void Compiler::processFunctionDeclaration(const FunctionDeclarationStatement& statement)
 {
-    if (_currentStatementDepth >= 1)
+    // depth 1 is file scope
+
+    if (_currentStatementDepth > 1)
         throw gear_e3003(statement.source().position);
 
     _code.label(statement.name.lexeme);
@@ -357,7 +401,9 @@ void Compiler::processFunctionDeclaration(const FunctionDeclarationStatement& st
 
 void Compiler::processReturn(const ReturnStatement& statement)
 {
-    //_code.instruction("ret");
+    const std::string value = getValueOfExpression(*statement.expression);
+
+    // TODO: finish
 }
 
 
@@ -373,9 +419,14 @@ void Compiler::processBlock(const BlockStatement& statement)
 
 void Compiler::process(const Expression& expression)
 {
+    const Expression* oldExpression = _currentExpression;
+    _currentExpression = &expression;
+
     _currentExpressionDepth++;
     expression.process(*this);
     _currentExpressionDepth--;
+
+    _currentExpression = oldExpression;
 }
 
 
@@ -388,48 +439,13 @@ void Compiler::processLiteral(const LiteralExpression& expression)
 
 void Compiler::processBinary(const BinaryExpression& expression)
 {
-    // TODO: clear this
-    // TODO: registers are not infinite: Or allocate at the stack if no register is available or throw an exception
-
     bool leftProcessed = false;
     bool rightProcessed = false;
 
     bool leftProcessedFirst = false;
     bool rightProcessedFirst = false;
 
-    if (!dynamic_cast<const LiteralExpression*>(expression.left))
-    {
-        process(*expression.left);
-        leftProcessed = true;
-
-        if (!rightProcessedFirst)
-            leftProcessedFirst = true;
-    }
-    
-    if (!dynamic_cast<const LiteralExpression*>(expression.right))
-    {
-        process(*expression.right);
-        rightProcessed = true;
-
-        if (!leftProcessedFirst)
-            rightProcessedFirst = true;
-    }
-
-    if (!leftProcessed)
-    {
-        process(*expression.left);
-
-        if (!rightProcessedFirst)
-            leftProcessedFirst = true;
-    }
-
-    if (!rightProcessed)
-    {
-        process(*expression.right);
-
-        if (!leftProcessedFirst)
-            rightProcessedFirst = true;
-    }
+    processBinaryOperands(expression, leftProcessed, rightProcessed, leftProcessedFirst, rightProcessedFirst);
 
     Register right = popLastRegisterFromBusy();
     Register left = popLastRegisterFromBusy();
@@ -454,7 +470,7 @@ void Compiler::processBinary(const BinaryExpression& expression)
         break;
 
     default:
-        throw internal_e0001();
+        throw internal_e0000_argument();
     }
 }
 
@@ -477,6 +493,62 @@ void Compiler::processIdentifier(const IdentifierExpression& expression)
 
 
 
+void Compiler::processBinaryOperands(const BinaryExpression& expression, bool& leftProcessed, bool& rightProcessed, bool& leftProcessedFirst, bool& rightProcessedFirst)
+{
+    if (processExpressionIfNotLiteral(*expression.left))
+        updateBinaryProcessingFlags(leftProcessed, leftProcessedFirst, rightProcessedFirst);
+    
+    if (processExpressionIfNotLiteral(*expression.right))
+        updateBinaryProcessingFlags(rightProcessed, rightProcessedFirst, leftProcessedFirst);
+
+
+    if (processExpressionIf(*expression.left, !leftProcessed))
+        updateBinaryProcessingFlags(leftProcessed, leftProcessedFirst, rightProcessedFirst);
+
+    if (processExpressionIf(*expression.right, !rightProcessed))
+        updateBinaryProcessingFlags(rightProcessed, rightProcessedFirst, leftProcessedFirst);
+}
+
+
+
+
+
+bool Compiler::processExpressionIf(const Expression& expression, const bool condition)
+{
+    if (condition)
+        process(expression);
+
+    return condition;
+}
+
+bool Compiler::processExpressionIfNotLiteral(const Expression& expression)
+{
+    return processExpressionIf(expression, !dynamic_cast<const LiteralExpression*>(&expression));
+}
+
+
+void Compiler::updateBinaryProcessingFlags(bool& processed, bool& processedFirst, bool& otherProcessedFirst) noexcept
+{
+    processed = true;
+
+    if (!otherProcessedFirst)
+        processedFirst = true;
+}
+
+
+
+
+
+std::string Compiler::getValueOfExpression(const Expression& expression)
+{
+    process(expression);
+    return popLastRegisterFromBusy().name;
+}
+
+
+
+
+
 bool Compiler::isRegisterBusy(const std::string& reg) const noexcept
 {
     for (const Register& busyRegister : _busyRegisters)
@@ -491,7 +563,7 @@ bool Compiler::isRegisterBusy(const std::string& reg) const noexcept
 void Compiler::pushRegisterToBusy(const Register& reg)
 {
     if (isRegisterBusy(reg.name))
-        throw internal_e0004();
+        throw internal_e0002();
 
     _busyRegisters.push_back(reg);  
 }
@@ -500,7 +572,7 @@ void Compiler::pushRegisterToBusy(const Register& reg)
 Register Compiler::popLastRegisterFromBusy()
 {
     if (_busyRegisters.empty())
-        throw internal_e0003();
+        throw internal_e0001();
 
     Register reg = _busyRegisters[_busyRegisters.size() - 1];
     _busyRegisters.pop_back();
@@ -516,7 +588,7 @@ const Register& Compiler::getFirstFreeRegisterOfSize(const ASMTypeSize size)
         if (!isRegisterBusy(generalRegister.name) && generalRegister.size == size)
             return generalRegister;
 
-    throw internal_e0005();
+    throw internal_e0003();
 }
 
 
@@ -577,5 +649,5 @@ TypeSize Compiler::stringToTypeSize(const std::string& type)
     if (type == "int32") return TypeSize::Int32;
     if (type == "int64") return TypeSize::Int64;
 
-    throw internal_e0000();
+    throw internal_e0000_argument();
 }

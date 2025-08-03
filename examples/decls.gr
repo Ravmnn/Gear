@@ -3,7 +3,7 @@ start
     decl number1: int32 = 53;
     decl number2: int32 = 100;
 
-    decl result: int32 = number1 + number2;
+    decl result: int32 = (number1 + number2) - (10 - 5);
 
     result;
 

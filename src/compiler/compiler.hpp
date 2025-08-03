@@ -10,6 +10,9 @@
 
 
 
+class CompilerException;
+class InternalException;
+
 
 class Compiler : StatementProcessor, ExpressionProcessor
 {
@@ -29,6 +32,9 @@ private:
 
     unsigned int _currentExpressionDepth;
     unsigned int _currentStatementDepth;
+
+    const Expression* _currentExpression;
+    const Statement* _currentStatement;
 
 
     const std::vector<const Statement*> _statements;
@@ -65,17 +71,23 @@ public:
     void setShouldComment(bool shouldComment) noexcept;
 
 
+private:
+    void resetDepth() noexcept;
+
+
+public:
     void compile();
 
 
 private:
-    void functionDeclarations();
+    void code();
 
     void startLabel();
 
     void finish();
 
 
+    CompilerException internalException5ToCompilerException(const InternalException& exception) const;
     void throwIfAnyNullStatement(const std::vector<const Statement*>& statements) const;
 
 
@@ -112,6 +124,15 @@ private:
     void processBinary(const BinaryExpression& expression) override;
     void processGrouping(const GroupingExpression& expression) override;
     void processIdentifier(const IdentifierExpression& expression) override;
+
+    void processBinaryOperands(const BinaryExpression& expression, bool& leftProcessed, bool& rightProcessed, bool& leftProcessedFirst, bool& rightProcessedFirst);
+
+    bool processExpressionIf(const Expression& expression, bool condition);
+    bool processExpressionIfNotLiteral(const Expression& expression);
+    static void updateBinaryProcessingFlags(bool& processed, bool& processedFirst, bool& otherProcessedFirst) noexcept;
+
+
+    std::string getValueOfExpression(const Expression& expression);
 
 
     bool isRegisterBusy(const std::string& reg) const noexcept;
