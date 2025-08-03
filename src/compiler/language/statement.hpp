@@ -125,13 +125,13 @@ public:
 class BlockStatement : public Statement
 {
 public:
-    BlockStatement(const Token& start, const Token& end, const std::vector<Statement*>& statements) noexcept;
+    BlockStatement(const Token& start, const Token& end, const std::vector<const Statement*>& statements) noexcept;
 
 
     const Token start;
     const Token end;
 
-    const std::vector<Statement*> statements;
+    const std::vector<const Statement*> statements;
 
 
     void process(StatementProcessor& processor) const override;

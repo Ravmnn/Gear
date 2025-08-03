@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stack>
+
 #include <compiler/language/token.hpp>
 
 
@@ -9,10 +11,10 @@ enum class ASMTypeSize;
 
 struct Identifier
 {
-    const std::string name;
-    const ASMTypeSize size;
+    std::string name;
+    ASMTypeSize size;
 
-    const TokenPosition position;
+    TokenPosition position;
 };
 
 
@@ -20,6 +22,7 @@ class IdentifierManager
 {
 private:
     std::vector<Identifier> _identifiers;
+    std::stack<unsigned int> _scopeMarkers;
 
 
 public:
@@ -27,6 +30,12 @@ public:
 
 
     const std::vector<Identifier>& identifiers() const noexcept;
+
+
+    void scopeBegin() noexcept;
+    void scopeEnd() noexcept;
+
+    unsigned int sizeOfCurrentScopeInBytes() const noexcept;
 
 
     bool isIdentifierDefined(const std::string& identifier) const noexcept;

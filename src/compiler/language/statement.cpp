@@ -86,7 +86,7 @@ const Token& ReturnStatement::source() const noexcept
 
 
 
-BlockStatement::BlockStatement(const Token& start, const Token& end, const std::vector<Statement*>& statements) noexcept
+BlockStatement::BlockStatement(const Token& start, const Token& end, const std::vector<const Statement*>& statements) noexcept
     : start(start), end(end), statements(statements)
 {}
 

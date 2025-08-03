@@ -3,12 +3,39 @@
 #include <compiler/exceptions/exceptions.hpp>
 
 
-// TODO: don't forget to remove the identifiers removed from scope.
-
 
 const std::vector<Identifier>& IdentifierManager::identifiers() const noexcept
 {
     return _identifiers;
+}
+
+
+
+void IdentifierManager::scopeBegin() noexcept
+{
+    _scopeMarkers.push(_identifiers.size());
+}
+
+
+void IdentifierManager::scopeEnd() noexcept
+{
+    const unsigned int marker = _scopeMarkers.top();
+    _scopeMarkers.pop();
+
+    if (_identifiers.size() > marker)
+        _identifiers.erase(_identifiers.cbegin() + marker);
+}
+
+
+
+unsigned int IdentifierManager::sizeOfCurrentScopeInBytes() const noexcept
+{
+    unsigned int sizeInBytes = 0;
+
+    for (const Identifier& identifier : _identifiers)
+        sizeInBytes += (unsigned int)identifier.size;
+
+    return sizeInBytes;
 }
 
 

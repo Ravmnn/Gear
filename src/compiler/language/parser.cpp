@@ -163,7 +163,7 @@ Statement* Parser::returnStatement()
 
 Statement* Parser::block()
 {
-    std::vector<Statement*> block;
+    std::vector<const Statement*> block;
 
     const Token& start = expect(TokenType::KwStart, gear_e2010(peek().position));
 

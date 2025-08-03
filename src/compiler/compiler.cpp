@@ -227,14 +227,6 @@ CompilerException Compiler::internalException5ToCompilerException(const Internal
 }
 
 
-void Compiler::throwIfAnyNullStatement(const std::vector<const Statement*>& statements) const
-{
-    for (const Statement* const statement : statements)
-        if (!statement)
-            throw internal_e0000_nullptr();
-}
-
-
 
 
 
@@ -282,6 +274,8 @@ void Compiler::allocateIdentifierOnStack(const Identifier& identifier, const std
 
 void Compiler::stackFrameBegin() noexcept
 {
+    // TODO: make _identifiers' scope handling work with stack frame
+
     instantComment(_code, "stack frame begin");
     _code.instruction("push", stackFrameRegister);
     _code.instruction("mov", stackFrameRegister, stackPointerRegister);
@@ -297,6 +291,23 @@ void Compiler::stackFrameEnd() noexcept
     _code.instruction("mov", stackPointerRegister, stackFrameRegister);
     _code.instruction("pop", stackFrameRegister);
     _code.newline();
+}
+
+
+
+void Compiler::scopeBegin() noexcept
+{
+    _identifiers.scopeBegin();
+}
+
+
+void Compiler::scopeEnd() noexcept
+{
+    const std::string sizeInBytesString = std::to_string(_identifiers.sizeOfCurrentScopeInBytes());
+
+    _identifiers.scopeEnd();
+
+    _code.instruction("add", stackPointerRegister, sizeInBytesString);
 }
 
 
@@ -354,6 +365,13 @@ void Compiler::process(const Statement& statement)
 }
 
 
+void Compiler::process(const std::vector<const Statement*>& statements)
+{
+    for (const Statement* const statement : statements)
+        process(*statement);
+}
+
+
 
 void Compiler::processExpression(const ExpressionStatement& statement)
 {
@@ -381,7 +399,7 @@ void Compiler::processFunctionDeclaration(const FunctionDeclarationStatement& st
     _code.enableIndent();
 
     stackFrameBegin();
-    processBlock(*statement.body);
+    processFunctionBlock(*statement.body); // don't use Compiler::processBlock because it creates a scope. Function scope is handled by stack frames.
     stackFrameEnd();
 
     _code.instruction("ret");
@@ -400,8 +418,15 @@ void Compiler::processReturn(const ReturnStatement& statement)
 
 void Compiler::processBlock(const BlockStatement& statement)
 {
-    for (const Statement* const statement : statement.statements)
-        process(*statement);
+    scopeBegin();
+    process(statement.statements);
+    scopeEnd();
+}
+
+
+void Compiler::processFunctionBlock(const BlockStatement& statement)
+{
+    process(statement.statements);
 }
 
 
@@ -557,4 +582,15 @@ TypeSize Compiler::stringToTypeSize(const std::string& type)
     if (type == "int64") return TypeSize::Int64;
 
     throw internal_e0000_argument();
+}
+
+
+
+
+
+void Compiler::throwIfAnyNullStatement(const std::vector<const Statement*>& statements)
+{
+    for (const Statement* const statement : statements)
+        if (!statement)
+            throw internal_e0000_nullptr();
 }

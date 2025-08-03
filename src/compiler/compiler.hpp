@@ -86,7 +86,6 @@ private:
 
 
     CompilerException internalException5ToCompilerException(const InternalException& exception) const;
-    void throwIfAnyNullStatement(const std::vector<const Statement*>& statements) const;
 
 
     void comment(AssemblyGenerator& generator, const std::string& comment) noexcept;
@@ -102,18 +101,24 @@ private:
     void stackFrameBegin() noexcept;
     void stackFrameEnd() noexcept;
 
+    void scopeBegin() noexcept;
+    void scopeEnd() noexcept;
+
 
     unsigned int addressDisplacementOfIdentifierOnStack(const Identifier& identifier) const;
     std::string addressOfIdentifierOnStack(const Identifier& identifier) const;
 
 
     void process(const Statement& statement);
+    void process(const std::vector<const Statement*>& statements);
 
     void processExpression(const ExpressionStatement& statement) override;
     void processDeclaration(const DeclarationStatement& statement) override;
     void processFunctionDeclaration(const FunctionDeclarationStatement& statement) override;
     void processReturn(const ReturnStatement& statement) override;
     void processBlock(const BlockStatement& statement) override;
+
+    void processFunctionBlock(const BlockStatement& statement);
 
 
     void process(const Expression& expression);
@@ -134,4 +139,7 @@ private:
 
 
     static TypeSize stringToTypeSize(const std::string& type);
+
+
+    static void throwIfAnyNullStatement(const std::vector<const Statement*>& statements);
 };

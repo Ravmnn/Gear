@@ -240,7 +240,7 @@ void ASTPrinter::processBlock(const BlockStatement& statement)
     
     increaseIndent();
 
-    for (Statement* const statement : statement.statements)
+    for (const Statement* const statement : statement.statements)
         statement->process(*this);
 
     decreaseIndent();
