@@ -63,3 +63,21 @@ main:
 
     ret
 
+; function test() -> int32
+test:
+    ; stack frame begin
+    push rbp
+    mov rbp, rsp
+    add rbp, 16
+
+
+    ; return $result
+    mov edi, [rsp]
+
+    ; stack frame end
+    sub rbp, 16
+    mov rsp, rbp
+    pop rbp
+
+    ret
+

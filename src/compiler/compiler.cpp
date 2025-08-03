@@ -39,16 +39,7 @@ const std::string Compiler::stackFrameRegister = "rbp";
 
 
 Compiler::Compiler(const std::vector<const Statement*>& statements, const BitMode bitMode, const std::string& entryPoint) noexcept
-    : _statements(statements), _generalRegisters({
-        Register{"rdi", ASMTypeSize::QWord}, Register{"edi", ASMTypeSize::DWord}, Register{"di", ASMTypeSize::Word}, Register{"dil", ASMTypeSize::Byte},
-        Register{"rsi", ASMTypeSize::QWord}, Register{"esi", ASMTypeSize::DWord}, Register{"si", ASMTypeSize::Word}, Register{"sl", ASMTypeSize::Byte},
-        Register{"rdx", ASMTypeSize::QWord}, Register{"edx", ASMTypeSize::DWord}, Register{"dx", ASMTypeSize::Word}, Register{"dl", ASMTypeSize::Byte},
-        Register{"rcx", ASMTypeSize::QWord}, Register{"ecx", ASMTypeSize::DWord}, Register{"cx", ASMTypeSize::Word}, Register{"cl", ASMTypeSize::Byte},
-        Register{"r8", ASMTypeSize::QWord}, Register{"r8d", ASMTypeSize::DWord}, Register{"r8w", ASMTypeSize::Word}, Register{"r8b", ASMTypeSize::Byte},
-        Register{"r9", ASMTypeSize::QWord}, Register{"r9d", ASMTypeSize::DWord}, Register{"r9w", ASMTypeSize::Word}, Register{"r9b", ASMTypeSize::Byte},
-        Register{"r10", ASMTypeSize::QWord}, Register{"r10d", ASMTypeSize::DWord}, Register{"r10w", ASMTypeSize::Word}, Register{"r10b", ASMTypeSize::Byte},
-        Register{"r11", ASMTypeSize::QWord}, Register{"r11d", ASMTypeSize::DWord}, Register{"r11w", ASMTypeSize::Word}, Register{"r11b", ASMTypeSize::Byte}
-    })
+    : _statements(statements)
 {
     _astPrinter.setIgnoreBlocks(true);
     _astPrinter.setNoNewlines(true);
@@ -161,7 +152,7 @@ void Compiler::code()
 
         // security reset, in case of an exception
         resetDepth();
-        freeAllBusyRegisters();
+        _registers.freeAllBusyRegisters();
     }
 }
 
@@ -265,20 +256,20 @@ void Compiler::moveToFreeRegister(const Register& reg, const std::string& data)
 {
     _code.instruction("mov", reg.name, data);
 
-    pushRegisterToBusy(reg);
+    _registers.pushRegisterToBusy(reg);
 }
 
 
 void Compiler::moveToFirstFreeRegisterOfSize(const ASMTypeSize size, const std::string& data)
 {
-    moveToFreeRegister(getFirstFreeRegisterOfSize(size), data);
+    moveToFreeRegister(_registers.getFirstFreeRegisterOfSize(size), data);
 }
 
 
 
 void Compiler::allocateIdentifierOnStack(const Identifier& identifier, const std::string& value)
 {
-    defineIdentifier(identifier);
+    _identifiers.defineIdentifier(identifier);
 
     const std::string sizeInBytesString = std::to_string((unsigned int)identifier.size);
     const std::string address = addressOfIdentifierOnStack(identifier);
@@ -314,14 +305,13 @@ void Compiler::stackFrameEnd() noexcept
 
 unsigned int Compiler::addressDisplacementOfIdentifierOnStack(const Identifier& identifier) const
 {
-    if (!isIdentifierDefined(identifier.name))
-        throw gear_e3001(identifier.position);
+    _identifiers.throwIfNotDefined(identifier.name, identifier.position);
 
     unsigned int offsetInBytes = 0;
 
-    for (int i = _identifiers.size() - 1; i >= 0; i--)
+    for (int i = _identifiers.identifiers().size() - 1; i >= 0; i--)
     {
-        const Identifier& currentIdentifier = _identifiers[i];
+        const Identifier& currentIdentifier = _identifiers.identifiers()[i];
 
         if (currentIdentifier.name == identifier.name)
             break;
@@ -359,7 +349,8 @@ void Compiler::process(const Statement& statement)
 
     _code.newline();
 
-    freeAllBusyRegisters();
+    // after a statement ends, all registers are supposed to be free
+    _registers.freeAllBusyRegisters();
 }
 
 
@@ -447,8 +438,8 @@ void Compiler::processBinary(const BinaryExpression& expression)
 
     processBinaryOperands(expression, leftProcessed, rightProcessed, leftProcessedFirst, rightProcessedFirst);
 
-    Register right = popLastRegisterFromBusy();
-    Register left = popLastRegisterFromBusy();
+    Register right = _registers.popLastRegisterFromBusy();
+    Register left = _registers.popLastRegisterFromBusy();
 
     if (rightProcessedFirst)
         std::swap(left, right);
@@ -457,7 +448,7 @@ void Compiler::processBinary(const BinaryExpression& expression)
     // so it's needed to re-occupy it after consuming (freeing) it to avoid
     // the loss of the result
 
-    pushRegisterToBusy(left);
+    _registers.pushRegisterToBusy(left);
 
     switch (expression.op.type)
     {
@@ -483,10 +474,12 @@ void Compiler::processGrouping(const GroupingExpression& expression)
 
 void Compiler::processIdentifier(const IdentifierExpression& expression)
 {
-    const Identifier identifier = getIdentifier(expression.identifier);
-    const std::string value = addressOfIdentifierOnStack(identifier);
+    _identifiers.throwIfNotDefined(expression.identifier.lexeme, expression.identifier.position);
 
-    moveToFirstFreeRegisterOfSize(identifier.size, value);
+    const Identifier* identifier = _identifiers.getIdentifier(expression.identifier.lexeme);
+    const std::string value = addressOfIdentifierOnStack(*identifier);
+
+    moveToFirstFreeRegisterOfSize(identifier->size, value);
 }
 
 
@@ -542,93 +535,7 @@ void Compiler::updateBinaryProcessingFlags(bool& processed, bool& processedFirst
 std::string Compiler::getValueOfExpression(const Expression& expression)
 {
     process(expression);
-    return popLastRegisterFromBusy().name;
-}
-
-
-
-
-
-bool Compiler::isRegisterBusy(const std::string& reg) const noexcept
-{
-    for (const Register& busyRegister : _busyRegisters)
-        if (busyRegister.name == reg)
-            return true;
-
-    return false;
-}
-
-
-
-void Compiler::pushRegisterToBusy(const Register& reg)
-{
-    if (isRegisterBusy(reg.name))
-        throw internal_e0002();
-
-    _busyRegisters.push_back(reg);  
-}
-
-
-Register Compiler::popLastRegisterFromBusy()
-{
-    if (_busyRegisters.empty())
-        throw internal_e0001();
-
-    Register reg = _busyRegisters[_busyRegisters.size() - 1];
-    _busyRegisters.pop_back();
-
-    return reg;
-}
-
-
-
-const Register& Compiler::getFirstFreeRegisterOfSize(const ASMTypeSize size)
-{
-    for (const Register& generalRegister : _generalRegisters)
-        if (!isRegisterBusy(generalRegister.name) && generalRegister.size == size)
-            return generalRegister;
-
-    throw internal_e0003();
-}
-
-
-
-void Compiler::freeAllBusyRegisters() noexcept
-{
-    _busyRegisters.clear();
-}
-
-
-
-
-
-bool Compiler::isIdentifierDefined(const std::string& identifier) const noexcept
-{
-    for (const Identifier& definedIdentifier : _identifiers)
-        if (definedIdentifier.name == identifier)
-            return true;
-
-    return false;
-}
-
-
-
-void Compiler::defineIdentifier(const Identifier& identifier)
-{
-    if (isIdentifierDefined(identifier.name))
-        throw gear_e3002(identifier.position);
-
-    _identifiers.push_back(identifier);
-}
-
-
-Identifier Compiler::getIdentifier(const Token& identifier) const
-{
-    for (const Identifier& declaredIdentifier : _identifiers)
-        if (declaredIdentifier.name == identifier.lexeme)
-            return declaredIdentifier;
-
-    throw gear_e3001(identifier.position);
+    return _registers.popLastRegisterFromBusy().name;
 }
 
 

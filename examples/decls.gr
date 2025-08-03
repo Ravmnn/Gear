@@ -9,3 +9,9 @@ start
 
     return 0;
 end
+
+
+function test() -> int32
+start
+    return result;
+end
