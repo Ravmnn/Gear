@@ -233,7 +233,10 @@ void ASTPrinter::processReturn(const ReturnStatement& statement)
 void ASTPrinter::processBlock(const BlockStatement& statement)
 {
     if (_ignoreBlocks)
+    {
+        _stream << "block";
         return;
+    }
 
     beginStatement();
     _stream << "start" << newlineChar();

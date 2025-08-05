@@ -21,7 +21,7 @@ _start:
 
 
 
-; function main() -> int32
+; function main() -> int32block
 main:
     ; stack frame begin
     push rbp
@@ -53,6 +53,29 @@ main:
     ; $result
     mov edi, [rsp]
 
+    ; block
+    ; start
+
+    ; inner2: int32 = 7
+    mov edi, 7
+    sub rsp, 4
+    mov [rsp], edi
+
+    ; inner1: bool = 1
+    mov edi, 1
+    sub rsp, 1
+    mov [rsp], edi
+
+    ; $inner1
+    mov dil, [rsp]
+
+    ; $inner2
+    mov edi, [rsp + 1]
+
+    add rsp, 17
+
+    ; end
+
     ; return 0
     mov edi, 0
 
@@ -63,7 +86,7 @@ main:
 
     ret
 
-; function test() -> int32
+; function test() -> int32block
 test:
     ; stack frame begin
     push rbp
@@ -71,8 +94,10 @@ test:
     add rbp, 16
 
 
-    ; return $result
-    mov edi, [rsp]
+    ; return (10 + 5)
+    mov edi, 10
+    mov esi, 5
+    add edi, esi
 
     ; stack frame end
     sub rbp, 16

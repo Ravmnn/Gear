@@ -11,6 +11,9 @@
 
 
 
+// TODO: change language name to "Torque"
+// TODO: convert boolean literal values to integer values when compiling
+
 // TODO: add support to variables
 // TODO: scope, including correct stack frame handling
 
@@ -395,6 +398,8 @@ void Compiler::processFunctionDeclaration(const FunctionDeclarationStatement& st
     if (_currentStatementDepth > 1)
         throw gear_e3003(statement.source().position);
 
+    _identifiers.clear(); // function scope cannot access another function's scope
+
     _code.label(statement.name.lexeme);
     _code.enableIndent();
 
@@ -418,9 +423,15 @@ void Compiler::processReturn(const ReturnStatement& statement)
 
 void Compiler::processBlock(const BlockStatement& statement)
 {
+    instantComment(_code, "start");
+    _code.newline();
+
     scopeBegin();
     process(statement.statements);
     scopeEnd();
+
+    _code.newline();
+    instantComment(_code, "end");
 }
 
 

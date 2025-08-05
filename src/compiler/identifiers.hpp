@@ -32,8 +32,13 @@ public:
     const std::vector<Identifier>& identifiers() const noexcept;
 
 
+    std::string print() const noexcept;
+
+
     void scopeBegin() noexcept;
     void scopeEnd() noexcept;
+
+    void clear() noexcept;
 
     unsigned int sizeOfCurrentScopeInBytes() const noexcept;
 
@@ -47,4 +52,8 @@ public:
 
     void throwIfNotDefined(const std::string& identifier, const TokenPosition& position) const;
     void throwIfDefined(const std::string& identifier, const TokenPosition& position) const;
+
+
+private:
+    bool isAnyMarkerAt(unsigned int index) const noexcept;
 };

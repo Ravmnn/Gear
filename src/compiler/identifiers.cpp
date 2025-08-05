@@ -1,5 +1,7 @@
 #include <compiler/identifiers.hpp>
 
+#include <sstream>
+
 #include <compiler/exceptions/exceptions.hpp>
 
 
@@ -7,6 +9,35 @@
 const std::vector<Identifier>& IdentifierManager::identifiers() const noexcept
 {
     return _identifiers;
+}
+
+
+
+bool IdentifierManager::isAnyMarkerAt(const unsigned int index) const noexcept
+{
+    for (size_t i = 0; i < _scopeMarkers.size(); i++)
+        if (*(&_scopeMarkers.top() + i) == index)
+            return true;
+
+    return false;
+}
+
+
+std::string IdentifierManager::print() const noexcept
+{
+    std::stringstream stream;
+
+    for (size_t i = 0; i < _identifiers.size(); i++)
+    {
+        if (isAnyMarkerAt(i))
+            stream << "-----" << std::endl;
+        
+        const Identifier& identifier = _identifiers[i];
+
+        stream << identifier.name << ": " << (unsigned int)identifier.size << std::endl;
+    }
+
+    return stream.str();
 }
 
 
@@ -22,8 +53,15 @@ void IdentifierManager::scopeEnd() noexcept
     const unsigned int marker = _scopeMarkers.top();
     _scopeMarkers.pop();
 
-    if (_identifiers.size() > marker)
-        _identifiers.erase(_identifiers.cbegin() + marker);
+    if (marker < _identifiers.size())
+        _identifiers.erase(_identifiers.cbegin() + marker, _identifiers.cend());
+}
+
+
+
+void IdentifierManager::clear() noexcept
+{
+    _identifiers.clear();
 }
 
 
