@@ -10,7 +10,7 @@ start
 
     start
         decl inner2: int32 = 7;
-        decl inner1: bool = 1;
+        decl inner1: bool = true;
     
         inner1;
         inner2;

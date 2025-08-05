@@ -11,8 +11,6 @@
 
 
 
-// TODO: convert boolean literal values to integer values when compiling
-
 // TODO: improve language syntax
 
 // TODO: add support to function calling
@@ -458,7 +456,12 @@ void Compiler::process(const Expression& expression)
 
 void Compiler::processLiteral(const LiteralExpression& expression)
 {
-    moveToFirstFreeRegisterOfSize(asmDefaultTypeSize, expression.value.lexeme);
+    std::string value = expression.value.lexeme;
+
+    if (expression.value.isBoolean())
+        value = std::to_string(Token::stringToBoolean(value));
+
+    moveToFirstFreeRegisterOfSize(asmDefaultTypeSize, value);
 }
 
 

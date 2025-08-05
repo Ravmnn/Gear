@@ -61,7 +61,7 @@ main:
     sub rsp, 4
     mov [rsp], edi
 
-    ; inner1: bool = 1
+    ; inner1: bool = true
     mov edi, 1
     sub rsp, 1
     mov [rsp], edi

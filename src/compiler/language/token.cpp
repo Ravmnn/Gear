@@ -24,7 +24,7 @@ bool Token::isBoolean(const std::string& boolean) noexcept
 
 bool Token::stringToBoolean(const std::string& boolean) noexcept
 {
-    return boolean == "true" ? true : false;
+    return (boolean == "true" ? true : false);
 }
 
 
