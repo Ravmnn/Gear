@@ -16,7 +16,7 @@ enum class ExceptionSection
 };
 
 
-class GearException : public std::exception
+class TorqueException : public std::exception
 {
 protected:
     std::string m_message;
@@ -25,7 +25,7 @@ protected:
 
 
 public:
-    explicit GearException(unsigned int section, unsigned int id, const std::string& message) noexcept;
+    explicit TorqueException(unsigned int section, unsigned int id, const std::string& message) noexcept;
 
 
     const std::string& message() const noexcept;

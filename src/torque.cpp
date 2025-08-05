@@ -1,4 +1,4 @@
-#include <gear.hpp>
+#include <torque.hpp>
 
 #include <iostream>
 #include <filesystem>
@@ -13,7 +13,7 @@
 
 
 
-GearOptions::GearOptions() noexcept
+TorqueOptions::TorqueOptions() noexcept
 {
     // default values
 
@@ -31,7 +31,7 @@ GearOptions::GearOptions() noexcept
 }
 
 
-Compiler GearOptions::initializeCompilerFromThis(const std::vector<const Statement*>& statements) const noexcept
+Compiler TorqueOptions::initializeCompilerFromThis(const std::vector<const Statement*>& statements) const noexcept
 {
     Compiler compiler(statements, (BitMode)programBitMode, programEntryPoint);
 
@@ -67,22 +67,37 @@ static std::vector<std::string> split(const std::string& source, const char deli
 
 
 
-std::string Gear::s_source = std::string();
-GearOptions Gear::s_options = GearOptions();
+std::string Torque::s_name = "torc";
+std::string Torque::s_description = "Official Ahead-Of-Time compiler for the language Torque.";
+
+std::string Torque::s_source = std::string();
+
+TorqueOptions Torque::s_options = TorqueOptions();
 
 
-const std::string& Gear::source() noexcept
+const std::string& Torque::name() noexcept
+{
+    return s_name;
+}
+
+const std::string& Torque::description() noexcept
+{
+    return s_description;
+}
+
+
+const std::string& Torque::source() noexcept
 {
     return s_source;
 }
 
-const std::vector<std::string> Gear::sourceAsLines() noexcept
+const std::vector<std::string> Torque::sourceAsLines() noexcept
 {
     return split(source(), '\n');
 }
 
 
-const GearOptions& Gear::options() noexcept
+const TorqueOptions& Torque::options() noexcept
 {
     return s_options;
 }
@@ -101,7 +116,7 @@ static std::vector<const Statement*> toConstStatements(const std::vector<Stateme
 }
 
 
-void Gear::run(const GearOptions& options)
+void Torque::run(const TorqueOptions& options)
 {
     s_source = readFile(options.filePath);
     s_options = options;
@@ -147,9 +162,9 @@ void Gear::run(const GearOptions& options)
 
 
 
-std::string Gear::compile(const std::vector<const Statement*>& statements)
+std::string Torque::compile(const std::vector<const Statement*>& statements)
 {
-    const GearOptions& options = Gear::options();
+    const TorqueOptions& options = Torque::options();
 
     Compiler compiler = options.initializeCompilerFromThis(statements);
     compiler.compile();
@@ -158,7 +173,7 @@ std::string Gear::compile(const std::vector<const Statement*>& statements)
 }
 
 
-std::filesystem::path Gear::assemble(const std::filesystem::path& file) noexcept
+std::filesystem::path Torque::assemble(const std::filesystem::path& file) noexcept
 {
     std::stringstream command;
     const std::filesystem::path outputFilePath = file.parent_path() / file.stem() += ".o";
@@ -171,7 +186,7 @@ std::filesystem::path Gear::assemble(const std::filesystem::path& file) noexcept
 }
 
 
-std::filesystem::path Gear::link(const std::filesystem::path& file) noexcept
+std::filesystem::path Torque::link(const std::filesystem::path& file) noexcept
 {
     std::stringstream command;
     const std::filesystem::path outputFilePath = file.parent_path() / options().programOutputName;
@@ -184,9 +199,9 @@ std::filesystem::path Gear::link(const std::filesystem::path& file) noexcept
 }
 
 
-std::filesystem::path Gear::writeToOutputFile(const std::string& content)
+std::filesystem::path Torque::writeToOutputFile(const std::string& content)
 {
-    const GearOptions& options = Gear::options();
+    const TorqueOptions& options = Torque::options();
 
     const std::filesystem::path outputFilePath = options.filePath.parent_path();
     const std::string outputFileName = options.filePath.stem() += ".asm";

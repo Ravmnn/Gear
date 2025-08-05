@@ -25,7 +25,7 @@ void error(const std::string& message) noexcept
 }
 
 
-void error(const GearException* const exception)
+void error(const TorqueException* const exception)
 {
     if (!exception)
         throw internal_e0002();

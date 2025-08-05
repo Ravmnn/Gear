@@ -1,1 +1,1 @@
-Gear is a low-level imperative programming language that compiles to assembly and, consequently, machine-code.
+Torque is a low-level imperative programming language that compiles to Assembly and, consequently, machine-code. Currently, only NASM syntax of Assembly is supported.

@@ -1,10 +1,10 @@
 #pragma once
 
-#include <compiler/exceptions/gear_exception.hpp>
+#include <compiler/exceptions/torque_exception.hpp>
 
 
 
-class InternalException : public GearException
+class InternalException : public TorqueException
 {
 public:
     InternalException(unsigned int code, const std::string& message) noexcept;

@@ -11,11 +11,9 @@
 
 
 
-// TODO: change language name to "Torque"
 // TODO: convert boolean literal values to integer values when compiling
 
-// TODO: add support to variables
-// TODO: scope, including correct stack frame handling
+// TODO: improve language syntax
 
 // TODO: add support to function calling
 // TODO: add support to external functions
@@ -137,7 +135,7 @@ void Compiler::code()
             if (function)
                 process(*function);
             else
-                throw gear_e3000(statement->source().position);
+                throw torque_e3000(statement->source().position);
         }
 
         catch (const CompilerException& exception)
@@ -224,7 +222,7 @@ CompilerException Compiler::internalException5ToCompilerException(const Internal
                 _currentExpression ? _currentExpression->source().position : _currentStatement->source().position;
 
     if (exception.id() == internal_e0003().id())
-        return gear_e3004(position);
+        return torque_e3004(position);
 
     throw internal_e0000_argument();
 }
@@ -396,7 +394,7 @@ void Compiler::processFunctionDeclaration(const FunctionDeclarationStatement& st
     // depth 1 is file scope
 
     if (_currentStatementDepth > 1)
-        throw gear_e3003(statement.source().position);
+        throw torque_e3003(statement.source().position);
 
     _identifiers.clear(); // function scope cannot access another function's scope
 

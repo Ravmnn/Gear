@@ -113,12 +113,12 @@ const Identifier* IdentifierManager::getIdentifier(const std::string& identifier
 void IdentifierManager::throwIfNotDefined(const std::string& identifier, const TokenPosition& position) const
 {
     if (!isIdentifierDefined(identifier))
-        throw gear_e3001(position);
+        throw torque_e3001(position);
 }
 
 
 void IdentifierManager::throwIfDefined(const std::string& identifier, const TokenPosition& position) const
 {
     if (isIdentifierDefined(identifier))
-        throw gear_e3002(position);
+        throw torque_e3002(position);
 }

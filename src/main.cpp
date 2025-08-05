@@ -3,20 +3,20 @@
 #include <CLI11/CLI11.hpp>
 
 #include <compiler/exceptions/internal_exception.hpp>
-#include <gear.hpp>
+#include <torque.hpp>
 #include <log.hpp>
 
 
 
-void addCommandLineOptions(CLI::App& app, GearOptions& options) noexcept;
-void addCommandLineFlags(CLI::App& app, GearOptions& options) noexcept;
+void addCommandLineOptions(CLI::App& app, TorqueOptions& options) noexcept;
+void addCommandLineFlags(CLI::App& app, TorqueOptions& options) noexcept;
 
 
 
 int main(int argc, char** argv)
 {
-    CLI::App app("Compiler for the language Gear.", "gear");
-    GearOptions options;
+    CLI::App app(Torque::name(), Torque::description());
+    TorqueOptions options;
 
     addCommandLineOptions(app, options);
     addCommandLineFlags(app, options);
@@ -25,7 +25,7 @@ int main(int argc, char** argv)
     {
         app.parse(argc, argv);
 
-        Gear::run(options);
+        Torque::run(options);
     }
 
     catch (const CLI::ParseError &e)
@@ -46,7 +46,7 @@ int main(int argc, char** argv)
 
 
 
-void addCommandLineOptions(CLI::App& app, GearOptions& options) noexcept
+void addCommandLineOptions(CLI::App& app, TorqueOptions& options) noexcept
 {
     app.add_option("-f, --file, file", options.filePath, "The source file path.")
         ->required()
@@ -70,7 +70,7 @@ void addCommandLineOptions(CLI::App& app, GearOptions& options) noexcept
 
 
 
-void addCommandLineFlags(CLI::App& app, GearOptions& options) noexcept
+void addCommandLineFlags(CLI::App& app, TorqueOptions& options) noexcept
 {
     app.add_flag("--print-ast", options.printAst, "Whether to print the Abstract Syntactic Tree or not.");
     app.add_flag("--compile, !--no-compile", options.compile, "Whether to compile the source file or not.");

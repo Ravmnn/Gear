@@ -3,7 +3,7 @@
 #include <compiler/exceptions/exceptions.hpp>
 #include <compiler/language/token.hpp>
 #include <log.hpp>
-#include <gear.hpp>
+#include <torque.hpp>
 
 
 Scanner::Scanner(const std::string& source) noexcept
@@ -75,7 +75,7 @@ void Scanner::scanToken()
             value();
 
         else
-            throw gear_e1000(_positionInFile);
+            throw torque_e1000(_positionInFile);
     };
 }
 
@@ -155,7 +155,7 @@ void Scanner::multilineComment()
         advance();
 
     if (atEnd())
-        throw gear_e1001(startPosition);
+        throw torque_e1001(startPosition);
 
     advance(); // advance '<'
     advance(); // advance '#'

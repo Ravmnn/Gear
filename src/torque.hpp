@@ -11,9 +11,9 @@
 class Statement;
 
 
-struct GearOptions
+struct TorqueOptions
 {
-    GearOptions() noexcept;
+    TorqueOptions() noexcept;
 
 
     std::filesystem::path filePath;
@@ -36,25 +36,30 @@ struct GearOptions
 
 
 
-class Gear
+class Torque
 {
 private:
+    static std::string s_name;
+    static std::string s_description;
+
     static std::string s_source;
 
-    static GearOptions s_options; 
+    static TorqueOptions s_options;
 
 
 public:
-    Gear() = delete;
+    Torque() = delete;
 
-
+    
+    static const std::string& name() noexcept;
+    static const std::string& description() noexcept;
     static const std::string& source() noexcept;
     static const std::vector<std::string> sourceAsLines() noexcept;
 
-    static const GearOptions& options() noexcept;
+    static const TorqueOptions& options() noexcept;
 
 
-    static void run(const GearOptions& options);
+    static void run(const TorqueOptions& options);
 
 private:
     static std::string compile(const std::vector<const Statement*>& statements);

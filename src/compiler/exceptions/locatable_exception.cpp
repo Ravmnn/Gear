@@ -2,13 +2,13 @@
 
 #include <sstream>
 
-#include <gear.hpp>
+#include <torque.hpp>
 #include <compiler/exceptions/exception_formatting.hpp>
 
 
 
 LocatableException::LocatableException(unsigned int section, unsigned int id, const std::string& message, const TokenPosition& position) noexcept
-    : GearException(section, id, message), m_position(position)
+    : TorqueException(section, id, message), m_position(position)
 {}
 
 
@@ -36,9 +36,9 @@ std::string LocatableException::formatExceptionInfo() const noexcept
 {
     std::stringstream stream;
 
-    const std::string filename = Gear::options().filePath.filename();
+    const std::string filename = Torque::options().filePath.filename();
 
-    stream << GearException::formatExceptionInfo() << " ";
+    stream << TorqueException::formatExceptionInfo() << " ";
     stream << '[' << filename << ':' << m_position.line << ", " << m_position.start << ';' << m_position.end << ']' << ' ';
 
     return stream.str();

@@ -4,7 +4,7 @@
 #include <filesystem>
 
 #include <compiler/language/token.hpp>
-#include <gear.hpp>
+#include <torque.hpp>
 
 
 
@@ -13,7 +13,7 @@ std::string generateFinalExceptionMessage(const std::string& message, const Toke
     std::stringstream stream;
     
     stream << message << std::endl << std::endl;
-    stream << generateTokenLocationHint(Gear::sourceAsLines(), position);
+    stream << generateTokenLocationHint(Torque::sourceAsLines(), position);
 
     return stream.str();
 }

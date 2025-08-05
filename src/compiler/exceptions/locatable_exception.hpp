@@ -1,11 +1,11 @@
 #pragma once
 
-#include <compiler/exceptions/gear_exception.hpp>
+#include <compiler/exceptions/torque_exception.hpp>
 #include <compiler/language/token.hpp>
 
 
 
-class LocatableException : public GearException
+class LocatableException : public TorqueException
 {
 protected:
     const TokenPosition m_position;

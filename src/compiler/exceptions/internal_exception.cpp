@@ -5,7 +5,7 @@
 
 
 InternalException::InternalException(const unsigned int code, const std::string& message) noexcept
-    : GearException((unsigned int)ExceptionSection::Internal, code, message)
+    : TorqueException((unsigned int)ExceptionSection::Internal, code, message)
 {}
 
 
@@ -25,6 +25,6 @@ std::string InternalException::formatExceptionInfo() const noexcept
 {
     std::stringstream stream;
 
-    stream << GearException::formatExceptionInfo() << " ";
+    stream << TorqueException::formatExceptionInfo() << " ";
     return stream.str();
 }

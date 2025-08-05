@@ -5,13 +5,13 @@
 
 
 
-class GearException;
+class TorqueException;
 
 
 bool failed() noexcept;
 
 void error(const std::string& message) noexcept;
-void error(const GearException* exception);
+void error(const TorqueException* exception);
 
 
 template <typename... T>

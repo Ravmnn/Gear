@@ -4,7 +4,7 @@
 #include <compiler/language/expression.hpp>
 #include <compiler/exceptions/exceptions.hpp>
 #include <log.hpp>
-#include <gear.hpp>
+#include <torque.hpp>
 
 
 
@@ -56,9 +56,9 @@ Statement* Parser::variableDeclaration()
     const Token& keyword = advance();
 
     const Token name = expectIdentifier();
-    expect(TokenType::Colon, gear_e2002(peek().position));
+    expect(TokenType::Colon, torque_e2002(peek().position));
     const Token type = expectTypename();
-    expect(TokenType::Equal, gear_e2004(peek().position));
+    expect(TokenType::Equal, torque_e2004(peek().position));
     
     const Expression* const value = expression();
 
@@ -78,12 +78,12 @@ Statement* Parser::functionDeclaration()
     const Token name = expectIdentifier();
     std::vector<FunctionParameterDeclaration> parameters;
 
-    expect(TokenType::ParenLeft, gear_e2007(peek().position));
+    expect(TokenType::ParenLeft, torque_e2007(peek().position));
     parameters = functionParameters();
-    expect(TokenType::ParenRight, gear_e2008(peek().position));
+    expect(TokenType::ParenRight, torque_e2008(peek().position));
 
-    expect(TokenType::Arrow, gear_e2009(peek().position));
-    const Token returnType = expect(TokenType::Type, gear_e2003(peek().position));
+    expect(TokenType::Arrow, torque_e2009(peek().position));
+    const Token returnType = expect(TokenType::Type, torque_e2003(peek().position));
 
     const BlockStatement* body = dynamic_cast<BlockStatement*>(block());
 
@@ -99,7 +99,7 @@ std::vector<FunctionParameterDeclaration> Parser::functionParameters()
         do
         {
             const Token name = expectIdentifier();
-            expect(TokenType::Colon, gear_e2002(peek().position));
+            expect(TokenType::Colon, torque_e2002(peek().position));
             const Token type = expectTypename();
 
             parameters.push_back(FunctionParameterDeclaration{ name, type });
@@ -131,7 +131,7 @@ Statement* Parser::statement()
         if (failed()) // something already went wrong, ignore
             return nullptr;
 
-        throw gear_e2012(peek().position);
+        throw torque_e2012(peek().position);
 
 
     default:
@@ -165,12 +165,12 @@ Statement* Parser::block()
 {
     std::vector<const Statement*> block;
 
-    const Token& start = expect(TokenType::KwStart, gear_e2010(peek().position));
+    const Token& start = expect(TokenType::KwStart, torque_e2010(peek().position));
 
     while (!atEnd() && !check(TokenType::KwEnd))
         block.push_back(declaration());
 
-    const Token& end = expect(TokenType::KwEnd, gear_e2011(peek().position));
+    const Token& end = expect(TokenType::KwEnd, torque_e2011(peek().position));
 
     return new BlockStatement(start, end, block);
 }
@@ -224,7 +224,7 @@ Expression* Parser::primary()
     if (match({ TokenType::ParenLeft }))
         return parseGroupExpression();
 
-    throw gear_e2006(peek().position);
+    throw torque_e2006(peek().position);
 }
 
 
@@ -233,7 +233,7 @@ Expression* Parser::parseGroupExpression()
     const Token leftParen = previous();
     const Expression* const expression = this->expression();
 
-    expect(TokenType::ParenRight, gear_e2006(leftParen.position));
+    expect(TokenType::ParenRight, torque_e2006(leftParen.position));
 
     return new GroupingExpression(expression);
 }
@@ -279,19 +279,19 @@ const Token& Parser::expect(const TokenType token, const ParserException& except
 
 const Token& Parser::expectEndOfStatement()
 {
-    return expect(TokenType::SemiColon, gear_e2000(peek().position));
+    return expect(TokenType::SemiColon, torque_e2000(peek().position));
 }
 
 
 
 const Token& Parser::expectIdentifier()
 {
-    return expect(TokenType::Identifier, gear_e2001(peek().position));
+    return expect(TokenType::Identifier, torque_e2001(peek().position));
 }
 
 const Token& Parser::expectTypename()
 {
-    return expect(TokenType::Type, gear_e2003(peek().position));
+    return expect(TokenType::Type, torque_e2003(peek().position));
 }
 
 
