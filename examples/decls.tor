@@ -15,7 +15,7 @@ start
         inner1;
         inner2;
     end
-    bye
+
     return 0;
 end
 
