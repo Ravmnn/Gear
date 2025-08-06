@@ -1,0 +1,33 @@
+bool isPrime(int32 number) start
+    for (uint32 i = 2; i < number; i++) do
+        if (number % i == 0) then
+            return false;
+
+    return true;
+end
+
+
+# suppose "list" exists
+list<int32> primeNumbersInRange(int32 min, int32 max) start
+    list<int32> primeNumbers;
+    
+    for (uint32 i = min; i < max; i++) do
+        if (isPrime(i)) then
+            primeNumbers.add(i);
+
+    return primeNumbers;
+end
+
+
+int32 main() start
+    int32 min = 100;
+    int32 max = 100;
+
+    list<int32> primeNumbers = primeNumbersInRange(1, 100);
+
+    # suppose "print" exists
+    for (uint32 i = 0; i < primeNumbers.size(); i++)
+        print(primeNumbers.at(i));
+
+    return 0;
+end
