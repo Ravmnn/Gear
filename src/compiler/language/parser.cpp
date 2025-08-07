@@ -39,8 +39,17 @@ Statement* Parser::declaration()
 {
     switch (peek().type)
     {
-    case TokenType::KwFunction: return functionDeclaration();
-    case TokenType::KwDeclare: return variableDeclaration();
+    case TokenType::Type: {
+        const Token type = expectTypename();
+        const Token name = expectIdentifier();
+
+        if (check(TokenType::ParenLeft))
+            return functionDeclaration(type, name);
+        else
+            return variableDeclaration(type, name);
+
+        break;
+    }
 
     default:
         return statement();
@@ -51,43 +60,32 @@ Statement* Parser::declaration()
 
 
 
-Statement* Parser::variableDeclaration()
+Statement* Parser::variableDeclaration(const Token& type, const Token& name)
 {
-    const Token& keyword = advance();
-
-    const Token name = expectIdentifier();
-    expect(TokenType::Colon, torque_e2002(peek().position));
-    const Token type = expectTypename();
     expect(TokenType::Equal, torque_e2004(peek().position));
-    
+
     const Expression* const value = expression();
 
     expectEndOfStatement();
 
-    return new DeclarationStatement(keyword, name, type, value);
+    return new DeclarationStatement(name, type, value);
 }
 
 
 
 
 
-Statement* Parser::functionDeclaration()
+Statement* Parser::functionDeclaration(const Token& returnType, const Token& name)
 {
-    const Token& keyword = advance();
-
-    const Token name = expectIdentifier();
     std::vector<FunctionParameterDeclaration> parameters;
 
     expect(TokenType::ParenLeft, torque_e2007(peek().position));
     parameters = functionParameters();
     expect(TokenType::ParenRight, torque_e2008(peek().position));
 
-    expect(TokenType::Arrow, torque_e2009(peek().position));
-    const Token returnType = expect(TokenType::Type, torque_e2003(peek().position));
-
     const BlockStatement* body = dynamic_cast<BlockStatement*>(block());
 
-    return new FunctionDeclarationStatement(keyword, name, parameters, returnType, body);
+    return new FunctionDeclarationStatement(name, returnType, parameters, body);
 }
 
 
@@ -248,7 +246,7 @@ void Parser::synchronize() noexcept
     {
         switch (peek().type)
         {
-        case TokenType::KwDeclare:
+        case TokenType::Type:
         case TokenType::KwFunction:
         case TokenType::KwReturn:
             return;

@@ -30,9 +30,9 @@ public:
 private:
     Statement* declaration();
     
-    Statement* variableDeclaration();
+    Statement* variableDeclaration(const Token& type, const Token& identifier);
 
-    Statement* functionDeclaration();
+    Statement* functionDeclaration(const Token& returnType, const Token& identifier);
     std::vector<FunctionParameterDeclaration> functionParameters();
 
 

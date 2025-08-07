@@ -24,8 +24,8 @@ const Token& ExpressionStatement::source() const noexcept
 
 
 
-DeclarationStatement::DeclarationStatement(const Token& keyword, const Token& name, const Token& type, const Expression* const value) noexcept
-    : keyword(keyword), name(name), type(type), value(value)
+DeclarationStatement::DeclarationStatement(const Token& name, const Token& type, const Expression* const value) noexcept
+    : name(name), type(type), value(value)
 {}
 
 
@@ -37,16 +37,16 @@ void DeclarationStatement::process(StatementProcessor& processor) const
 
 const Token& DeclarationStatement::source() const noexcept
 {
-    return keyword;
+    return type;
 }
 
 
 
 
 
-FunctionDeclarationStatement::FunctionDeclarationStatement(const Token& keyword, const Token& name, const std::vector<FunctionParameterDeclaration>& parameters,
-    const Token& returnType, const BlockStatement* const body) noexcept
-        : keyword(keyword), name(name), parameters(parameters), returnType(returnType), body(body)
+FunctionDeclarationStatement::FunctionDeclarationStatement(const Token& name, const Token& returnType, const std::vector<FunctionParameterDeclaration>& parameters,
+    const BlockStatement* const body) noexcept
+        : name(name), returnType(returnType), parameters(parameters), body(body)
 {}
 
 
@@ -58,7 +58,7 @@ void FunctionDeclarationStatement::process(StatementProcessor& processor) const
 
 const Token& FunctionDeclarationStatement::source() const noexcept
 {
-    return keyword;
+    return returnType;
 }
 
 

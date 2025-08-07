@@ -18,7 +18,6 @@ enum class TokenType
     Value,
     Type,
 
-    KwDeclare,
     KwStart, KwEnd, KwFunction, KwReturn,
 };
 
@@ -41,7 +40,6 @@ struct Token
 
 
     inline static const std::map<std::string, TokenType> keywords = {
-        {"decl", TokenType::KwDeclare},
         {"start", TokenType::KwStart},
         {"end", TokenType::KwEnd},
         {"function", TokenType::KwFunction},

@@ -11,9 +11,8 @@
 
 
 
-// TODO: improve language syntax
-
 // TODO: add support to function calling
+// TODO: add support to function arguments
 // TODO: add support to external functions
 // TODO: add basic stdlib
 

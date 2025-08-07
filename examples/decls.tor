@@ -1,16 +1,15 @@
-function main() -> int32
-start
-    decl number1: int32 = 53;
-    decl number2: int32 = 100;
+int32 main() start
+    int32 number1 = 53;
+    int32 number2 = 100;
 
-    decl result: int32 = (number1 + number2) - (10 - 5);
+    int32 result = (number1 + number2) - (10 - 5);
 
     result;
 
 
     start
-        decl inner2: int32 = 7;
-        decl inner1: bool = true;
+        int32 inner2 = 7;
+        bool inner1 = true;
     
         inner1;
         inner2;
@@ -20,7 +19,6 @@ start
 end
 
 
-function test() -> int32
-start
+int32 test() start
     return 10 + 5;
 end

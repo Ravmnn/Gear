@@ -21,7 +21,7 @@ _start:
 
 
 
-; function main() -> int32block
+; int32 main() block...
 main:
     ; stack frame begin
     push rbp
@@ -29,17 +29,17 @@ main:
     add rbp, 16
 
 
-    ; number1: int32 = 53
+    ; int32 number1 = 53
     mov edi, 53
     sub rsp, 4
     mov [rsp], edi
 
-    ; number2: int32 = 100
+    ; int32 number2 = 100
     mov edi, 100
     sub rsp, 4
     mov [rsp], edi
 
-    ; result: int32 = ((($number1 + $number2)) - ((10 - 5)))
+    ; int32 result = ((($number1 + $number2)) - ((10 - 5)))
     mov edi, [rsp + 4]
     mov esi, [rsp]
     add edi, esi
@@ -53,15 +53,15 @@ main:
     ; $result
     mov edi, [rsp]
 
-    ; block
+    ;  block...
     ; start
 
-    ; inner2: int32 = 7
+    ; int32 inner2 = 7
     mov edi, 7
     sub rsp, 4
     mov [rsp], edi
 
-    ; inner1: bool = true
+    ; bool inner1 = true
     mov edi, 1
     sub rsp, 1
     mov [rsp], edi
@@ -86,7 +86,7 @@ main:
 
     ret
 
-; function test() -> int32block
+; int32 test() block...
 test:
     ; stack frame begin
     push rbp

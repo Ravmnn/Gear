@@ -55,10 +55,8 @@ public:
 class DeclarationStatement : public Statement
 {
 public:
-    DeclarationStatement(const Token& keyword, const Token& name, const Token& type, const Expression* value) noexcept;
+    DeclarationStatement(const Token& name, const Token& type, const Expression* value) noexcept;
 
-
-    const Token keyword;
 
     const Token name;
     const Token type;
@@ -83,15 +81,13 @@ struct FunctionParameterDeclaration
 class FunctionDeclarationStatement : public Statement
 {
 public:
-    FunctionDeclarationStatement(const Token& keyword, const Token& name, const std::vector<FunctionParameterDeclaration>& parameters,
-        const Token& returnType, const BlockStatement* body) noexcept;
+    FunctionDeclarationStatement(const Token& name, const Token& returnType, const std::vector<FunctionParameterDeclaration>& parameters,
+        const BlockStatement* body) noexcept;
 
-    
-    const Token keyword;
 
     const Token name;
-    const std::vector<FunctionParameterDeclaration> parameters;
     const Token returnType;
+    const std::vector<FunctionParameterDeclaration> parameters;
     const BlockStatement* const body;
 
 

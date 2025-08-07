@@ -191,7 +191,7 @@ void ASTPrinter::processDeclaration(const DeclarationStatement& statement)
 {
     beginStatement();
 
-    _stream << statement.name.lexeme << ": " << statement.type.lexeme << " = ";
+    _stream << statement.type.lexeme << " " << statement.name.lexeme << " = ";
     statement.value->process(*this);
     
     endStatement();
@@ -202,16 +202,16 @@ void ASTPrinter::processFunctionDeclaration(const FunctionDeclarationStatement& 
 {
     beginStatement();
 
-    _stream << "function " << statement.name.lexeme << "(";
+    _stream << statement.returnType.lexeme << " " << statement.name.lexeme << "(";
     
     for (const FunctionParameterDeclaration& parameter : statement.parameters)
     {
         const bool atEnd = &parameter == (statement.parameters.cend() - 1).base();
 
-        _stream << parameter.name.lexeme << ": " << parameter.type.lexeme << (!atEnd ? ", " : "");
+        _stream << parameter.type.lexeme << " " << parameter.name.lexeme << (!atEnd ? ", " : "");
     }
 
-    _stream << ")" << " -> " << statement.returnType.lexeme << newlineChar();
+    _stream << ")" << newlineChar();
 
     processBlock(*statement.body);
     
@@ -234,7 +234,7 @@ void ASTPrinter::processBlock(const BlockStatement& statement)
 {
     if (_ignoreBlocks)
     {
-        _stream << "block";
+        _stream << " block...";
         return;
     }
 
