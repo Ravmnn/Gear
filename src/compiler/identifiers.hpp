@@ -13,8 +13,10 @@ struct Identifier
 {
     std::string name;
     ASMTypeSize size;
-
+    
     TokenPosition position;
+
+    bool isInstructionAddress = false;
 };
 
 

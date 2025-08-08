@@ -105,16 +105,6 @@ const TorqueOptions& Torque::options() noexcept
 
 
 
-static std::vector<const Statement*> toConstStatements(const std::vector<Statement*>& statements) noexcept
-{
-    std::vector<const Statement*> constStatements;
-
-    for (const Statement* const statement : statements)
-        constStatements.push_back(statement);
-
-    return constStatements;
-}
-
 
 void Torque::run(const TorqueOptions& options)
 {
@@ -126,7 +116,7 @@ void Torque::run(const TorqueOptions& options)
     if (failed())
         return;
 
-    const std::vector<const Statement*> statements = toConstStatements(Parser(tokens).parse());
+    const std::vector<const Statement*> statements = Parser(tokens).parse();
 
     if (failed())
         return;

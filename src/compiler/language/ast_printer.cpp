@@ -47,7 +47,7 @@ std::string ASTPrinter::print(const std::vector<const Statement*>& statements) n
 
     for (const Statement* const statement : statements)
         if (statement)
-            statement->process(*this);
+            process(*statement);
 
     return _stream.str();
 }
@@ -57,7 +57,7 @@ std::string ASTPrinter::print(const Statement& statement) noexcept
 {
     _stream = {};
 
-    statement.process(*this);
+    process(statement);
 
     return _stream.str();
 }
@@ -67,7 +67,7 @@ std::string ASTPrinter::print(const Expression& expression) noexcept
 {
     _stream = {};
 
-    expression.process(*this);
+    process(expression);
 
     return _stream.str();
 }
@@ -78,7 +78,7 @@ void ASTPrinter::parenthesize(const Expression* const expression)
 {
     _stream << "(";
 
-    expression->process(*this);
+    process(*expression);
 
     _stream << ")";
 }
@@ -101,7 +101,7 @@ void ASTPrinter::unaryStringify(const std::string& name, const Expression* const
 {
     _stream << "(" << name << " ";
 
-    operand->process(*this);
+    process(*operand);
 
     _stream << ")";
 }
@@ -110,11 +110,11 @@ void ASTPrinter::unaryStringify(const std::string& name, const Expression* const
 void ASTPrinter::binaryStringify(const std::string& name, const Expression* const left, const Expression* const right)
 {
     _stream << "(";
-    left->process(*this);
+    process(*left);
 
     _stream << ' ' << name << ' ';
 
-    right->process(*this);
+    process(*right);
     _stream << ")";
 }
 
@@ -126,7 +126,7 @@ void ASTPrinter::multiOperandStringify(const std::string& name, const std::vecto
     for (const Expression* const expression : expressions)
     {
         _stream << ' ';
-        expression->process(*this);
+        process(*expression);
     }
 
     _stream << ")";
@@ -177,11 +177,18 @@ void ASTPrinter::endStatement() noexcept
 
 
 
+void ASTPrinter::process(const Statement& statement)
+{
+    statement.process(*this);
+}
+
+
+
 void ASTPrinter::processExpression(const ExpressionStatement& statement)
 {
     beginStatement();
     
-    statement.expression->process(*this);
+    process(*statement.expression);
     
     endStatement();
 }
@@ -192,7 +199,7 @@ void ASTPrinter::processDeclaration(const DeclarationStatement& statement)
     beginStatement();
 
     _stream << statement.type.lexeme << " " << statement.name.lexeme << " = ";
-    statement.value->process(*this);
+    process(*statement.value);
     
     endStatement();
 }
@@ -213,7 +220,7 @@ void ASTPrinter::processFunctionDeclaration(const FunctionDeclarationStatement& 
 
     _stream << ")" << newlineChar();
 
-    processBlock(*statement.body);
+    process(*statement.body);
     
     endStatement();
 }
@@ -224,7 +231,7 @@ void ASTPrinter::processReturn(const ReturnStatement& statement)
     beginStatement();
 
     _stream << "return ";
-    statement.expression->process(*this);
+    process(*statement.expression);
 
     endStatement();
 }
@@ -244,7 +251,7 @@ void ASTPrinter::processBlock(const BlockStatement& statement)
     increaseIndent();
 
     for (const Statement* const statement : statement.statements)
-        statement->process(*this);
+        process(*statement);
 
     decreaseIndent();
     
@@ -252,6 +259,14 @@ void ASTPrinter::processBlock(const BlockStatement& statement)
     endStatement();
 }
 
+
+
+
+
+void ASTPrinter::process(const Expression& expression)
+{
+    expression.process(*this);
+}
 
 
 
@@ -277,4 +292,21 @@ void ASTPrinter::processGrouping(const GroupingExpression& expression)
 void ASTPrinter::processIdentifier(const IdentifierExpression& expression)
 {
     _stream << "$" << expression.identifier.lexeme;
+}
+
+
+void ASTPrinter::processCall(const CallExpression& expression)
+{
+    process(*expression.callee);
+    _stream << "(";
+
+    for (const Expression* const argument : expression.arguments)
+    {
+        const bool atEnd = &argument == (expression.arguments.cend() - 1).base();
+
+        process(*argument);
+        _stream << (atEnd ? "" : ", ");
+    }
+
+    _stream << ")";
 }

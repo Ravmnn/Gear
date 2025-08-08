@@ -83,6 +83,11 @@ ParserException torque_e2012(const TokenPosition& position) noexcept
     return ParserException(12, "Wrong keyword placement.", position);
 }
 
+ParserException torque_e2013(const TokenPosition& position) noexcept
+{
+    return ParserException(13, "Expect \")\" after argument list.", position);
+}
+
 
 
 

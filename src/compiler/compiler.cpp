@@ -11,7 +11,7 @@
 
 
 
-// TODO: add support to function calling
+// TODO: add support to function calling (and returning values)
 // TODO: add support to function arguments
 // TODO: add support to external functions
 // TODO: add basic stdlib
@@ -33,11 +33,12 @@ const ASMTypeSize Compiler::asmDefaultTypeSize = ASMTypeSize::DWord;
 
 const std::string Compiler::stackPointerRegister = "rsp";
 const std::string Compiler::stackFrameRegister = "rbp";
+//const std::string Compiler::returnRegister = "rax";
 
 
 
 Compiler::Compiler(const std::vector<const Statement*>& statements, const BitMode bitMode, const std::string& entryPoint) noexcept
-    : _statements(statements)
+    : _scopeLocal(_scope.local()), _scopeGlobal(_scope.global()), _statements(statements)
 {
     _astPrinter.setIgnoreBlocks(true);
     _astPrinter.setNoNewlines(true);
@@ -117,36 +118,20 @@ void Compiler::compile()
     
     code();
     startLabel();
-    finish();   
+    finish();
 }
 
 
 void Compiler::code()
 {
-    for (const Statement* const statement : _statements)
+    std::vector<const FunctionDeclarationStatement*> functions = statementsToFunctions(_statements);
+
+    // function identifiers should be defined before they are processed
+    defineFunctionIdentifiers(functions);
+
+    for (const FunctionDeclarationStatement* function : functions)
     {
-        const FunctionDeclarationStatement* function = dynamic_cast<const FunctionDeclarationStatement*>(statement);
-
-        try
-        {
-            if (function)
-                process(*function);
-            else
-                throw torque_e3000(statement->source().position);
-        }
-
-        catch (const CompilerException& exception)
-        {
-            // when a compiler error occurs, the function being compiled is ignored
-
-            error(&exception);
-        }
-
-        catch (const InternalException& exception)
-        {
-            const CompilerException newException = internalException5ToCompilerException(exception);
-            error(&newException);
-        }
+        compileFunction(function);
 
         // security reset, in case of an exception
         resetDepth();
@@ -210,6 +195,59 @@ void Compiler::finish()
 
 
 
+std::vector<const FunctionDeclarationStatement*> Compiler::statementsToFunctions(const std::vector<const Statement*>& statements)
+{
+    std::vector<const FunctionDeclarationStatement*> functions;
+
+    for (const Statement* const statement : _statements)
+    {
+        const FunctionDeclarationStatement* function = dynamic_cast<const FunctionDeclarationStatement*>(statement);
+
+        if (function)
+            functions.push_back(function);
+    }
+
+    return functions;
+}
+
+
+
+void Compiler::defineFunctionIdentifiers(const std::vector<const FunctionDeclarationStatement*>& functions)
+{
+    for (const FunctionDeclarationStatement* const function : functions)
+        defineFunctionIdentifierInGlobal(*function);
+}
+
+
+
+void Compiler::compileFunction(const FunctionDeclarationStatement* function)
+{
+    try
+    {
+        if (function)
+            process(*function);
+        else
+            throw torque_e3000(function->source().position);
+    }
+
+    catch (const CompilerException& exception)
+    {
+        // when a compiler error occurs, the function being compiled is ignored
+
+        error(&exception);
+    }
+
+    catch (const InternalException& exception)
+    {
+        const CompilerException newException = internalException5ToCompilerException(exception);
+        error(&newException);
+    }
+}
+
+
+
+
+
 CompilerException Compiler::internalException5ToCompilerException(const InternalException& exception) const
 {
     if (!_currentExpression && !_currentStatement)
@@ -259,7 +297,7 @@ void Compiler::moveToFirstFreeRegisterOfSize(const ASMTypeSize size, const std::
 
 void Compiler::allocateIdentifierOnStack(const Identifier& identifier, const std::string& value)
 {
-    _identifiers.defineIdentifier(identifier);
+    _scopeLocal.defineIdentifier(identifier);
 
     const std::string sizeInBytesString = std::to_string((unsigned int)identifier.size);
     const std::string address = addressOfIdentifierOnStack(identifier);
@@ -295,15 +333,15 @@ void Compiler::stackFrameEnd() noexcept
 
 void Compiler::scopeBegin() noexcept
 {
-    _identifiers.scopeBegin();
+    _scopeLocal.scopeBegin();
 }
 
 
 void Compiler::scopeEnd() noexcept
 {
-    const std::string sizeInBytesString = std::to_string(_identifiers.sizeOfCurrentScopeInBytes());
+    const std::string sizeInBytesString = std::to_string(_scopeLocal.sizeOfCurrentScopeInBytes());
 
-    _identifiers.scopeEnd();
+    _scopeLocal.scopeEnd();
 
     _code.instruction("add", stackPointerRegister, sizeInBytesString);
 }
@@ -314,13 +352,13 @@ void Compiler::scopeEnd() noexcept
 
 unsigned int Compiler::addressDisplacementOfIdentifierOnStack(const Identifier& identifier) const
 {
-    _identifiers.throwIfNotDefined(identifier.name, identifier.position);
+    _scope.throwIfNotDefined(identifier.name, identifier.position);
 
     unsigned int offsetInBytes = 0;
 
-    for (int i = _identifiers.identifiers().size() - 1; i >= 0; i--)
+    for (int i = _scopeLocal.identifiers().size() - 1; i >= 0; i--)
     {
-        const Identifier& currentIdentifier = _identifiers.identifiers()[i];
+        const Identifier& currentIdentifier = _scopeLocal.identifiers()[i];
 
         if (currentIdentifier.name == identifier.name)
             break;
@@ -347,6 +385,11 @@ void Compiler::process(const Statement& statement)
 {
     instantComment(_code, _astPrinter.print(statement));
 
+    // pop return register if it's busy
+    if (_registers.isRegisterOfFamilyBusy(9))
+        _registers.popRegisterOfFamily(9);
+
+
     const Statement* oldStatement = _currentStatement;
     _currentStatement = &statement;
 
@@ -357,6 +400,7 @@ void Compiler::process(const Statement& statement)
     _currentStatement = oldStatement;
 
     _code.newline();
+
 
     // after a statement ends, all registers are supposed to be free
     _registers.freeAllBusyRegisters();
@@ -393,7 +437,14 @@ void Compiler::processFunctionDeclaration(const FunctionDeclarationStatement& st
     if (_currentStatementDepth > 1)
         throw torque_e3003(statement.source().position);
 
-    _identifiers.clear(); // function scope cannot access another function's scope
+    const IdentifierManager oldScope = _scopeLocal;
+    
+    
+    // pop return register if it's busy
+    if (_registers.isRegisterOfFamilyBusy(9))
+        _registers.popRegisterOfFamily(9);
+
+    _scopeLocal.clear(); // function scope cannot access another function's scope
 
     _code.label(statement.name.lexeme);
     _code.enableIndent();
@@ -401,18 +452,21 @@ void Compiler::processFunctionDeclaration(const FunctionDeclarationStatement& st
     stackFrameBegin();
     processFunctionBlock(*statement.body); // don't use Compiler::processBlock because it creates a scope. Function scope is handled by stack frames.
     stackFrameEnd();
-
+;
     _code.instruction("ret");
 
     _code.disableIndent();
+
+
+    _scopeLocal = oldScope;
 }
 
 
 void Compiler::processReturn(const ReturnStatement& statement)
 {
-    const std::string value = getValueOfExpression(*statement.expression);
+    _registers.prioritizeReturnRegister();
 
-    // TODO: finish
+    process(*statement.expression);
 }
 
 
@@ -421,18 +475,31 @@ void Compiler::processBlock(const BlockStatement& statement)
     instantComment(_code, "start");
     _code.newline();
 
+
     scopeBegin();
     process(statement.statements);
     scopeEnd();
+
 
     _code.newline();
     instantComment(_code, "end");
 }
 
 
+
 void Compiler::processFunctionBlock(const BlockStatement& statement)
 {
     process(statement.statements);
+}
+
+
+
+void Compiler::defineFunctionIdentifierInGlobal(const FunctionDeclarationStatement& statement)
+{
+    const ASMTypeSize returnType = (ASMTypeSize)stringToTypeSize(statement.returnType.lexeme);
+    const Identifier identifier = Identifier{ statement.name.lexeme, returnType, statement.source().position, true };
+
+    _scopeGlobal.defineIdentifier(identifier);
 }
 
 
@@ -510,12 +577,42 @@ void Compiler::processGrouping(const GroupingExpression& expression)
 
 void Compiler::processIdentifier(const IdentifierExpression& expression)
 {
-    _identifiers.throwIfNotDefined(expression.identifier.lexeme, expression.identifier.position);
+    _scope.throwIfNotDefined(expression.identifier.lexeme, expression.identifier.position);
 
-    const Identifier* identifier = _identifiers.getIdentifier(expression.identifier.lexeme);
-    const std::string value = addressOfIdentifierOnStack(*identifier);
+    const Identifier* identifier = _scope.getIdentifier(expression.identifier.lexeme);
+    const bool isInstructionAddress = identifier->isInstructionAddress;
 
-    moveToFirstFreeRegisterOfSize(identifier->size, value);
+    const std::string value = isInstructionAddress ? identifier->name : addressOfIdentifierOnStack(*identifier);
+    const ASMTypeSize registerSize = isInstructionAddress ? (ASMTypeSize)TypeSize::FPtr : identifier->size;
+
+    moveToFirstFreeRegisterOfSize(registerSize, value);
+}
+
+
+void Compiler::processCall(const CallExpression& expression)
+{
+    // TODO: detect whether the callee is a function or not
+
+    const IdentifierExpression* const identifier = dynamic_cast<const IdentifierExpression*>(expression.callee);
+
+    if (!identifier)
+        throw internal_e0000();
+
+    const std::string function = identifier->identifier.lexeme;
+
+    // return type size of the function
+    const ASMTypeSize registerSize = _scope.getIdentifier(function)->size;
+    const Register& returnRegister = _registers.getReturnRegisterOfSize(registerSize);
+
+    // when calling a function, if it returns any value, it's necessary to push the return register (rax)
+    // to busy, so we can get its value later.
+
+    _registers.pushRegisterToBusy(returnRegister);
+
+
+    const std::string value = getValueOfExpression(*expression.callee);
+
+    _code.instruction("call", value);
 }
 
 
@@ -571,6 +668,7 @@ void Compiler::updateBinaryProcessingFlags(bool& processed, bool& processedFirst
 std::string Compiler::getValueOfExpression(const Expression& expression)
 {
     process(expression);
+
     return _registers.popLastRegisterFromBusy().name;
 }
 

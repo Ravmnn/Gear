@@ -4,7 +4,7 @@
 
 #include <compiler/assembly/assembly_generator.hpp>
 #include <compiler/language/ast_printer.hpp>
-#include <compiler/identifiers.hpp>
+#include <compiler/program_scope.hpp>
 #include <compiler/registers.hpp>
 #include <compiler/sizes.hpp>
 
@@ -26,7 +26,10 @@ private:
     ASTPrinter _astPrinter;
 
     RegisterManager _registers;
-    IdentifierManager _identifiers;
+
+    ProgramScope _scope;
+    IdentifierManager& _scopeLocal;
+    IdentifierManager& _scopeGlobal;
 
     unsigned int _currentExpressionDepth;
     unsigned int _currentStatementDepth;
@@ -79,10 +82,13 @@ public:
 
 private:
     void code();
-
     void startLabel();
-
     void finish();
+
+
+    std::vector<const FunctionDeclarationStatement*> statementsToFunctions(const std::vector<const Statement*>& statements);
+    void defineFunctionIdentifiers(const std::vector<const FunctionDeclarationStatement*>& function);
+    void compileFunction(const FunctionDeclarationStatement* function);
 
 
     CompilerException internalException5ToCompilerException(const InternalException& exception) const;
@@ -120,6 +126,8 @@ private:
 
     void processFunctionBlock(const BlockStatement& statement);
 
+    void defineFunctionIdentifierInGlobal(const FunctionDeclarationStatement& statement);
+
 
     void process(const Expression& expression);
 
@@ -127,6 +135,7 @@ private:
     void processBinary(const BinaryExpression& expression) override;
     void processGrouping(const GroupingExpression& expression) override;
     void processIdentifier(const IdentifierExpression& expression) override;
+    void processCall(const CallExpression& expression) override;
 
     void processBinaryOperands(const BinaryExpression& expression, bool& leftProcessed, bool& rightProcessed, bool& leftProcessedFirst, bool& rightProcessedFirst);
 

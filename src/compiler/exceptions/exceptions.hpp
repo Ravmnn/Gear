@@ -26,6 +26,7 @@ ParserException torque_e2009(const TokenPosition& position) noexcept;
 ParserException torque_e2010(const TokenPosition& position) noexcept;
 ParserException torque_e2011(const TokenPosition& position) noexcept;
 ParserException torque_e2012(const TokenPosition& position) noexcept;
+ParserException torque_e2013(const TokenPosition& position) noexcept;
 
 
 

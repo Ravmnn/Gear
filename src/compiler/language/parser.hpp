@@ -15,7 +15,7 @@ struct FunctionParameterDeclaration;
 class Parser
 {
 private:
-    std::vector<Statement*> _statements;
+    std::vector<const Statement*> _statements;
     std::vector<Token> _tokens;
     unsigned int _current;
 
@@ -24,31 +24,33 @@ public:
     explicit Parser(const std::vector<Token>& tokens) noexcept;
 
 
-    std::vector<Statement*> parse();
+    std::vector<const Statement*> parse();
 
 
 private:
-    Statement* declaration();
+    const Statement* declaration();
     
-    Statement* variableDeclaration(const Token& type, const Token& identifier);
+    const Statement* variableDeclaration(const Token& type, const Token& identifier);
 
-    Statement* functionDeclaration(const Token& returnType, const Token& identifier);
+    const Statement* functionDeclaration(const Token& returnType, const Token& identifier);
     std::vector<FunctionParameterDeclaration> functionParameters();
 
 
-    Statement* statement();
-    Statement* expressionStatement();
-    Statement* returnStatement();
+    const Statement* statement();
+    const Statement* expressionStatement();
+    const Statement* returnStatement();
 
-    Statement* block();
+    const Statement* block();
 
 
-    Expression* expression();
-    Expression* term();
-    Expression* factor();
-    Expression* primary();
+    const Expression* expression();
+    const Expression* term();
+    const Expression* factor();
+    const Expression* call();
+    std::vector<const Expression*> arguments();
+    const Expression* primary();
 
-    Expression* parseGroupExpression();
+    const Expression* parseGroupExpression();
 
 
     void synchronize() noexcept;

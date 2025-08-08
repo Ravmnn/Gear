@@ -16,7 +16,9 @@ enum class TypeSize
     Int8 = 1,
     Int16 = 2,
     Int32 = 4,
-    Int64 = 8
+    Int64 = 8,
+
+    FPtr = UInt64
 };
 
 

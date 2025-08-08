@@ -55,6 +55,7 @@ private:
     void multiOperandStringify(const std::string& name, const std::vector<const Expression*>& expressions);
 
 
+    void process(const Statement& statement);
 
     void processExpression(const ExpressionStatement& statement) override;
     void processDeclaration(const DeclarationStatement& statement) override;
@@ -63,10 +64,13 @@ private:
     void processBlock(const BlockStatement& statement) override;
 
 
+    void process(const Expression& expression);
+
     void processLiteral(const LiteralExpression& expression) override;
     void processBinary(const BinaryExpression& expression) override;
     void processGrouping(const GroupingExpression& expression) override;
     void processIdentifier(const IdentifierExpression& expression) override;
+    void processCall(const CallExpression& expression) override;
 
 
 };

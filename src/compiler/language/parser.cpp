@@ -13,7 +13,7 @@ Parser::Parser(const std::vector<Token>& tokens) noexcept
 {}
 
 
-std::vector<Statement*> Parser::parse()
+std::vector<const Statement*> Parser::parse()
 {
     reset();
 
@@ -35,7 +35,7 @@ std::vector<Statement*> Parser::parse()
 
 
 
-Statement* Parser::declaration()
+const Statement* Parser::declaration()
 {
     switch (peek().type)
     {
@@ -60,7 +60,7 @@ Statement* Parser::declaration()
 
 
 
-Statement* Parser::variableDeclaration(const Token& type, const Token& name)
+const Statement* Parser::variableDeclaration(const Token& type, const Token& name)
 {
     expect(TokenType::Equal, torque_e2004(peek().position));
 
@@ -75,7 +75,7 @@ Statement* Parser::variableDeclaration(const Token& type, const Token& name)
 
 
 
-Statement* Parser::functionDeclaration(const Token& returnType, const Token& name)
+const Statement* Parser::functionDeclaration(const Token& returnType, const Token& name)
 {
     std::vector<FunctionParameterDeclaration> parameters;
 
@@ -83,7 +83,7 @@ Statement* Parser::functionDeclaration(const Token& returnType, const Token& nam
     parameters = functionParameters();
     expect(TokenType::ParenRight, torque_e2008(peek().position));
 
-    const BlockStatement* body = dynamic_cast<BlockStatement*>(block());
+    const BlockStatement* body = dynamic_cast<const BlockStatement*>(block());
 
     return new FunctionDeclarationStatement(name, returnType, parameters, body);
 }
@@ -111,7 +111,7 @@ std::vector<FunctionParameterDeclaration> Parser::functionParameters()
 
 
 
-Statement* Parser::statement()
+const Statement* Parser::statement()
 {
     switch (peek().type)
     {
@@ -138,7 +138,7 @@ Statement* Parser::statement()
 }
 
 
-Statement* Parser::expressionStatement()
+const Statement* Parser::expressionStatement()
 {
     const Expression* const expression = this->expression();
     expectEndOfStatement();
@@ -147,7 +147,7 @@ Statement* Parser::expressionStatement()
 }
 
 
-Statement* Parser::returnStatement()
+const Statement* Parser::returnStatement()
 {
     const Token& keyword = advance();
 
@@ -159,7 +159,7 @@ Statement* Parser::returnStatement()
 
 
 
-Statement* Parser::block()
+const Statement* Parser::block()
 {
     std::vector<const Statement*> block;
 
@@ -175,20 +175,20 @@ Statement* Parser::block()
 
 
 
-Expression* Parser::expression()
+const Expression* Parser::expression()
 {
     return term();
 }
 
 
-Expression* Parser::term()
+const Expression* Parser::term()
 {
-    Expression* expression = factor();
+    const Expression* expression = factor();
 
     while (match({ TokenType::Plus, TokenType::Minus }))
     {
         const Token op = previous();
-        Expression* const right = factor();
+        const Expression* const right = factor();
         expression = new BinaryExpression(expression, op, right);
     }
 
@@ -196,14 +196,14 @@ Expression* Parser::term()
 }
 
 
-Expression* Parser::factor()
+const Expression* Parser::factor()
 {
-    Expression* expression = primary();
+    const Expression* expression = call();
 
     while (match({ TokenType::Star, TokenType::Slash }))
     {
         const Token op = previous();
-        Expression* const right = primary();
+        const Expression* const right = call();
         expression = new BinaryExpression(expression, op, right);
     }
 
@@ -211,7 +211,41 @@ Expression* Parser::factor()
 }
 
 
-Expression* Parser::primary()
+const Expression* Parser::call()
+{
+    const Expression* expression = primary();
+
+    while (match({ TokenType::ParenLeft }))
+    {  
+        const Token parenLeft = previous();
+        std::vector<const Expression*> arguments;
+        
+        if (!check(TokenType::ParenRight))
+            arguments = this->arguments();
+
+        expect(TokenType::ParenRight, torque_e2013(peek().position));
+
+        expression = new CallExpression(parenLeft, expression, arguments);
+    }
+
+    return expression;
+}
+
+
+std::vector<const Expression*> Parser::arguments()
+{
+    std::vector<const Expression*> expressions;
+
+    do
+        expressions.push_back(expression());
+    while (match({ TokenType::Comma }));
+    
+
+    return expressions;
+}
+
+
+const Expression* Parser::primary()
 {
     if (match({ TokenType::Value }))
         return new LiteralExpression(previous());
@@ -226,7 +260,7 @@ Expression* Parser::primary()
 }
 
 
-Expression* Parser::parseGroupExpression()
+const Expression* Parser::parseGroupExpression()
 {
     const Token leftParen = previous();
     const Expression* const expression = this->expression();
