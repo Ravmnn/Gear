@@ -98,7 +98,7 @@ private:
     void instantComment(AssemblyGenerator& generator, const std::string& comment) noexcept;
 
 
-    void moveToFreeRegister(const Register& reg, const std::string& data);
+    void moveToFreeRegister(Register& reg, const std::string& data);
     void moveToFirstFreeRegisterOfSize(ASMTypeSize size, const std::string& data);
 
     void allocateIdentifierOnStack(const Identifier& identifier, const std::string& value = "0");

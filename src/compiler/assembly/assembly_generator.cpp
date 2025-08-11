@@ -163,9 +163,9 @@ void AssemblyGenerator::syscall(const std::string& code, const std::string& arg1
 }
 
 
-void AssemblyGenerator::syscallExit(const unsigned int exitCode) noexcept
+void AssemblyGenerator::syscallExit(const std::string& exitCode) noexcept
 {
-    syscall("60", std::to_string(exitCode));
+    syscall("60", exitCode);
 }
 
 

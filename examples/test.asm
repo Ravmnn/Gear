@@ -35,14 +35,6 @@ main:
     sub rsp, 4
     mov [rsp], eax
 
-    ; int32 value2 = ($get() + 10)
-    mov rdi, get
-    call rdi
-    mov edi, 10
-    add eax, edi
-    sub rsp, 4
-    mov [rsp], eax
-
     ; return 0
     mov eax, 0
 
@@ -61,9 +53,8 @@ get:
     add rbp, 16
 
 
-    ; return $get2()
+    ; return $get2
     mov rax, get2
-    call rax
 
     ; stack frame end
     sub rbp, 16

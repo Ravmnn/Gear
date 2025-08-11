@@ -156,7 +156,7 @@ void Compiler::startLabel()
     _start.newline();
 
     instantComment(_start, "syscall exit");
-    _start.syscallExit(0);
+    _start.syscallExit("0"); // TODO: use return value of main instead
 
 
     _start.disableIndent();
@@ -280,9 +280,9 @@ void Compiler::instantComment(AssemblyGenerator& generator, const std::string& c
 
 
 
-void Compiler::moveToFreeRegister(const Register& reg, const std::string& data)
+void Compiler::moveToFreeRegister(Register& reg, const std::string& data)
 {
-    _code.instruction("mov", reg.name, data);
+    _code.instruction("mov", reg.name(), data);
 
     _registers.pushRegisterToBusy(reg);
 }
@@ -385,9 +385,11 @@ void Compiler::process(const Statement& statement)
 {
     instantComment(_code, _astPrinter.print(statement));
 
+    const RegisterFamily& returnRegister = _registers.returnRegister();
+
     // pop return register if it's busy
-    if (_registers.isRegisterOfFamilyBusy(9))
-        _registers.popRegisterOfFamily(9);
+    if (returnRegister.isBusy())
+        _registers.popRegisterOfFamily(returnRegister.familyId());
 
 
     const Statement* oldStatement = _currentStatement;
@@ -439,10 +441,6 @@ void Compiler::processFunctionDeclaration(const FunctionDeclarationStatement& st
 
     const IdentifierManager oldScope = _scopeLocal;
     
-    
-    // pop return register if it's busy
-    if (_registers.isRegisterOfFamilyBusy(9))
-        _registers.popRegisterOfFamily(9);
 
     _scopeLocal.clear(); // function scope cannot access another function's scope
 
@@ -452,7 +450,7 @@ void Compiler::processFunctionDeclaration(const FunctionDeclarationStatement& st
     stackFrameBegin();
     processFunctionBlock(*statement.body); // don't use Compiler::processBlock because it creates a scope. Function scope is handled by stack frames.
     stackFrameEnd();
-;
+
     _code.instruction("ret");
 
     _code.disableIndent();
@@ -525,7 +523,7 @@ void Compiler::processLiteral(const LiteralExpression& expression)
     std::string value = expression.value.lexeme;
 
     if (expression.value.isBoolean())
-        value = std::to_string(Token::stringToBoolean(value));
+        value = std::to_string((int)Token::stringToBoolean(value));
 
     moveToFirstFreeRegisterOfSize(asmDefaultTypeSize, value);
 }
@@ -556,11 +554,11 @@ void Compiler::processBinary(const BinaryExpression& expression)
     switch (expression.op.type)
     {
     case TokenType::Plus:
-        _code.instruction("add", left.name, right.name);
+        _code.instruction("add", left.name(), right.name());
         break;
 
     case TokenType::Minus:
-        _code.instruction("sub", left.name, right.name);
+        _code.instruction("sub", left.name(), right.name());
         break;
 
     default:
@@ -602,7 +600,7 @@ void Compiler::processCall(const CallExpression& expression)
 
     // return type size of the function
     const ASMTypeSize registerSize = _scope.getIdentifier(function)->size;
-    const Register& returnRegister = _registers.getReturnRegisterOfSize(registerSize);
+    Register& returnRegister = _registers.returnRegister().getRegisterOfSize(registerSize);
 
     // when calling a function, if it returns any value, it's necessary to push the return register (rax)
     // to busy, so we can get its value later.
@@ -669,7 +667,7 @@ std::string Compiler::getValueOfExpression(const Expression& expression)
 {
     process(expression);
 
-    return _registers.popLastRegisterFromBusy().name;
+    return _registers.popLastRegisterFromBusy().name();
 }
 
 

@@ -7,44 +7,203 @@
 
 
 
-RegisterManager::RegisterManager()
+Register::Register()
 {
-    _generalRegisters = {
-        Register{"rdi", ASMTypeSize::QWord, 1}, Register{"edi", ASMTypeSize::DWord, 1}, Register{"di", ASMTypeSize::Word, 1}, Register{"dil", ASMTypeSize::Byte, 1},
-        Register{"rsi", ASMTypeSize::QWord, 2}, Register{"esi", ASMTypeSize::DWord, 2}, Register{"si", ASMTypeSize::Word, 2}, Register{"sl", ASMTypeSize::Byte, 2},
-        Register{"rdx", ASMTypeSize::QWord, 3}, Register{"edx", ASMTypeSize::DWord, 3}, Register{"dx", ASMTypeSize::Word, 3}, Register{"dl", ASMTypeSize::Byte, 3},
-        Register{"rcx", ASMTypeSize::QWord, 4}, Register{"ecx", ASMTypeSize::DWord, 4}, Register{"cx", ASMTypeSize::Word, 4}, Register{"cl", ASMTypeSize::Byte, 4},
-        Register{"r8", ASMTypeSize::QWord, 5}, Register{"r8d", ASMTypeSize::DWord, 5}, Register{"r8w", ASMTypeSize::Word, 5}, Register{"r8b", ASMTypeSize::Byte, 5},
-        Register{"r9", ASMTypeSize::QWord, 6}, Register{"r9d", ASMTypeSize::DWord, 6}, Register{"r9w", ASMTypeSize::Word, 6}, Register{"r9b", ASMTypeSize::Byte, 6},
-        Register{"r10", ASMTypeSize::QWord, 7}, Register{"r10d", ASMTypeSize::DWord, 7}, Register{"r10w", ASMTypeSize::Word, 7}, Register{"r10b", ASMTypeSize::Byte, 7},
-        Register{"r11", ASMTypeSize::QWord, 8}, Register{"r11d", ASMTypeSize::DWord, 8}, Register{"r11w", ASMTypeSize::Word, 8}, Register{"r11b", ASMTypeSize::Byte, 8}
-    };
+    _size = ASMTypeSize::Byte;
+    _family = nullptr;
+    _manualFree = false;
+}
 
-    _returnRegister = {
-        Register{"rax", ASMTypeSize::QWord, 9, true},
-        Register{"eax", ASMTypeSize::DWord, 9, true},
-        Register{"ax", ASMTypeSize::Word, 9, true},
-        Register{"al", ASMTypeSize::Byte, 9, true}
-    };
 
+Register::Register(const std::string& name, const ASMTypeSize size, RegisterFamily* const family, const bool manualFree)
+{
+    if (!family)
+        throw internal_e0000_nullptr();
+
+    _name = name;
+    _size = size;
+    _family = family;
+    _manualFree = manualFree;
+}
+
+
+const std::string& Register::name() const noexcept
+{
+    return _name;
+}
+
+
+ASMTypeSize Register::size() const noexcept
+{
+    return _size;
+}
+
+
+RegisterFamily* Register::family() noexcept
+{
+    return _family;
+}
+
+
+bool Register::manualFree() const noexcept
+{
+    return _manualFree;
+}
+
+
+
+bool Register::isBusy() const noexcept
+{
+    return _family->isBusy();
+}
+
+
+
+ASMTypeSize RegisterFamily::sizeIndexToASMTypeSize(const SizeIndex index)
+{
+    switch (index)
+    {
+    case SizeIndex::Byte: return ASMTypeSize::Byte;
+    case SizeIndex::Word: return ASMTypeSize::Word;
+    case SizeIndex::DWord: return ASMTypeSize::DWord;
+    case SizeIndex::QWord: return ASMTypeSize::QWord;
+
+    default: throw internal_e0000_argument();
+    }
+}
+
+
+RegisterFamily::SizeIndex RegisterFamily::asmTypeSizeToSizeIndex(const ASMTypeSize size)
+{
+    switch (size)
+    {
+    case ASMTypeSize::Byte: return SizeIndex::Byte;
+    case ASMTypeSize::Word: return SizeIndex::Word;
+    case ASMTypeSize::DWord: return SizeIndex::DWord;
+    case ASMTypeSize::QWord: return SizeIndex::QWord;
+
+    default: throw internal_e0000_argument();
+    }
+}
+
+
+RegisterFamily::RegisterFamily(const std::initializer_list<std::string>& registersName, const unsigned int familyId, const bool manualFree)
+    : _familyId(familyId), _manualFree(manualFree)
+{
+    _busyRegister = nullptr;
+
+    if (registersName.size() != 4)
+        throw internal_e0000_argument();
+
+    for (size_t i = 0; i < registersName.size(); i++)
+    {
+        const std::string name = *(registersName.begin() + i);
+        const ASMTypeSize size = sizeIndexToASMTypeSize((SizeIndex)i);
+
+        _registers[i] = Register{ name, size, this, manualFree };
+    }
+}
+
+
+unsigned int RegisterFamily::familyId() const noexcept
+{
+    return _familyId;
+}
+
+
+const std::array<Register, 4>& RegisterFamily::registers() const noexcept
+{
+    return _registers;
+}
+
+
+Register* RegisterFamily::busyRegister() noexcept
+{
+    return _busyRegister;
+}
+
+
+bool RegisterFamily::manualFree() const noexcept
+{
+    return _manualFree;
+}
+
+
+
+void RegisterFamily::setBusyRegister(Register* busyRegister) noexcept
+{
+    _busyRegister = busyRegister;
+}
+
+
+
+bool RegisterFamily::isBusy() const noexcept
+{
+    return _busyRegister != nullptr;
+}
+
+
+bool RegisterFamily::hasRegister(const std::string& registerName) const noexcept
+{
+    for (const Register& reg : _registers)
+        if (reg.name() == registerName)
+            return true;
+
+    return false;
+}
+
+
+
+Register& RegisterFamily::getRegisterOfSize(const ASMTypeSize size) noexcept
+{
+    const SizeIndex index = asmTypeSizeToSizeIndex(size);
+
+    return _registers[index];
+}
+
+
+Register& RegisterFamily::getRegisterOfName(const std::string& name)
+{
+    for (Register& reg : _registers)
+        if (reg.name() == name)
+            return reg;
+
+    throw internal_e0000_argument();
+}
+
+
+
+RegisterManager::RegisterManager()
+    : _generalRegisters({
+        RegisterFamily({ "rdi", "edi", "di", "dil" }, RegisterFamily::DI),
+        RegisterFamily({ "rsi", "esi", "si", "sl" }, RegisterFamily::SI),
+        RegisterFamily({ "rdx", "edx", "dx", "dl" }, RegisterFamily::DX),
+        RegisterFamily({ "rcx", "ecx", "cx", "cl" }, RegisterFamily::CX),
+        RegisterFamily({ "r8", "r8d", "r8w", "r8b" }, RegisterFamily::R8),
+        RegisterFamily({ "r9", "r9d", "r9w", "r9b" }, RegisterFamily::R9),
+        RegisterFamily({ "r10", "r10d", "r10w", "r10b" }, RegisterFamily::R10),
+        RegisterFamily({ "r11", "r11d", "r11w", "r11b" }, RegisterFamily::R11),
+    }),
+    _returnRegister(RegisterFamily({ "rax", "eax", "ax", "al" }, RegisterFamily::AX, true))
+{
     _prioritizeReturnRegister = false;
 }
 
 
 
-const std::array<Register, 32>& RegisterManager::generalRegisters() const noexcept
+const std::array<RegisterFamily, 8>& RegisterManager::generalRegisters() const noexcept
 {
     return _generalRegisters;
 }
 
 
-const std::array<Register, 4>& RegisterManager::returnRegister() const noexcept
+RegisterFamily& RegisterManager::returnRegister() noexcept
 {
     return _returnRegister;
 }
 
 
-const std::vector<Register>& RegisterManager::busyRegisters() const noexcept
+const std::vector<RegisterFamily*>& RegisterManager::busyRegisters() const noexcept
 {
     return _busyRegisters;
 }
@@ -58,35 +217,14 @@ void RegisterManager::prioritizeReturnRegister() noexcept
 
 
 
-bool RegisterManager::isRegisterBusy(const std::string& reg) const noexcept
-{
-    for (const Register& generalRegister : _generalRegisters)
-        if (generalRegister.name == reg)
-            return isRegisterOfFamilyBusy(generalRegister.family);
-
-    return false;
-}
-
-
-bool RegisterManager::isRegisterOfFamilyBusy(unsigned int family) const noexcept
-{
-    for (const Register& busyRegister : _busyRegisters)
-        if (busyRegister.family == family)
-            return true;
-
-    return false;
-}
-
-
-
 
 
 std::string RegisterManager::print() const noexcept
 {
     std::stringstream stream;
 
-    for (const Register& busyRegister : _busyRegisters)
-        stream << std::boolalpha << busyRegister.name << " - " << busyRegister.ignoreAutomaticFree << std::endl;
+    // for (const RegisterFamily& busyRegister : _busyRegisters)
+    //     stream << std::boolalpha << busyRegister.name << " - " << busyRegister.manualFree << std::endl;
 
     return stream.str();
 }
@@ -95,17 +233,20 @@ std::string RegisterManager::print() const noexcept
 
 
 
-void RegisterManager::pushRegisterToBusy(const Register& reg)
+void RegisterManager::pushRegisterToBusy(Register& reg)
 {
-    if (isRegisterBusy(reg.name))
+    if (reg.family()->isBusy())
         throw internal_e0000_argument();
 
-    _busyRegisters.push_back(reg);  
+    RegisterFamily* const registerFamily = reg.family();
+    registerFamily->setBusyRegister(&reg);
+
+    _busyRegisters.push_back(reg.family());
 }
 
 
 
-const Register& RegisterManager::popRegisterAtIndex(const size_t index)
+Register& RegisterManager::popRegisterAtIndex(const size_t index)
 {
     if (_busyRegisters.empty())
         throw internal_e0000();
@@ -113,23 +254,27 @@ const Register& RegisterManager::popRegisterAtIndex(const size_t index)
     if (index >= _busyRegisters.size())
         throw internal_e0000_argument();
 
-    const Register& reg = _busyRegisters[index];
+    RegisterFamily& registerFamily = *_busyRegisters[index];
+    Register& busyRegister = *registerFamily.busyRegister();
+
+    registerFamily.setBusyRegister(nullptr);
+
     _busyRegisters.erase(_busyRegisters.cbegin() + index);
 
-    return reg;
+    return busyRegister;
 }
 
 
-const Register& RegisterManager::popLastRegisterFromBusy()
+Register& RegisterManager::popLastRegisterFromBusy()
 {
     return popRegisterAtIndex(_busyRegisters.size() - 1);
 }
 
 
-const Register& RegisterManager::popRegisterOfFamily(unsigned int family)
+Register& RegisterManager::popRegisterOfFamily(unsigned int familyId)
 {
     for (size_t i = 0; i < _busyRegisters.size(); i++)
-        if (_busyRegisters[i].family == family)
+        if (_busyRegisters[i]->familyId() == familyId)
             return popRegisterAtIndex(i);
 
     throw internal_e0000_argument();
@@ -141,28 +286,16 @@ void RegisterManager::freeAllBusyRegisters() noexcept
 {
     for (size_t i = 0; i < _busyRegisters.size(); i++)
     {
-        const Register& reg = _busyRegisters[i];
+        const RegisterFamily& registerFamily = *_busyRegisters[i];
 
-        if (!reg.ignoreAutomaticFree)
-            _busyRegisters.erase(_busyRegisters.cbegin() + i);
+        if (!registerFamily.manualFree())
+            popRegisterAtIndex(i);
     }
 }
 
 
 
-std::vector<Register> RegisterManager::getGeneralRegistersOfFamily(unsigned int family) const noexcept
-{
-    std::vector<Register> registers;
-
-    for (const Register& reg : _generalRegisters)
-        if (reg.family == family)
-            registers.push_back(reg);
-
-    return registers;
-}
-
-
-const Register& RegisterManager::getFirstFreeRegisterOfSize(const ASMTypeSize size)
+Register& RegisterManager::getFirstFreeRegisterOfSize(const ASMTypeSize size)
 {
     // TODO: terrible approach, improve
 
@@ -170,25 +303,14 @@ const Register& RegisterManager::getFirstFreeRegisterOfSize(const ASMTypeSize si
     {
         _prioritizeReturnRegister = false;
 
-        for (const Register& reg : _returnRegister)
-            if (!isRegisterBusy(reg.name) && reg.size == size)
-                return reg;
+        if (!_returnRegister.isBusy())
+            return _returnRegister.getRegisterOfSize(size);
     }
 
     else
-        for (const Register& generalRegister : _generalRegisters)
-            if (!isRegisterBusy(generalRegister.name) && generalRegister.size == size)
-                return generalRegister;
-    
-    throw internal_e0000();
-}
-
-
-const Register& RegisterManager::getReturnRegisterOfSize(ASMTypeSize size)
-{
-    for (const Register& reg : _returnRegister)
-        if (reg.size == size)
-            return reg;
+        for (RegisterFamily& generalRegister : _generalRegisters)
+            if (!generalRegister.isBusy())
+                return generalRegister.getRegisterOfSize(size);
 
     throw internal_e0000();
 }

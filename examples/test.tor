@@ -1,6 +1,5 @@
 int32 main() start
     int32 value = get();
-    int32 value2 = get() + 10;
 
     return 0;
 end
