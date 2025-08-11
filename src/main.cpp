@@ -37,6 +37,12 @@ int main(int argc, char** argv)
     {
         error(&exception);
 
+        if (options.showAbortedAssembly)
+        {
+            println("aborted assembly: ");
+            println(Compiler::assemblyAborted->str());
+        }
+
         return EXIT_FAILURE;
     }
 
@@ -78,4 +84,6 @@ void addCommandLineFlags(CLI::App& app, TorqueOptions& options) noexcept
     app.add_flag("--link, !--no-link", options.link, "Whether to link the object file generated or not.");
 
     app.add_flag("--comment-asm, !--no-comment-asm", options.commentAsm, "Whether to generate assembly comments or not.");
+    
+    app.add_flag("--show-aborted-assembly, !--no-show-aborted-assembly", options.showAbortedAssembly, "Whether to show the aborted assembly or not.");
 }

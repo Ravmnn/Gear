@@ -1,17 +1,7 @@
 int32 main() start
-    int32 value = get();
+    int32 value = 10;
+
+    value();
 
     return 0;
-end
-
-
-# TODO: not working correctly:
-
-int32 get() start
-    return get2();
-end
-
-
-int32 get2() start
-    return 10;
 end

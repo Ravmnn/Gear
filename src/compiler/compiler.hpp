@@ -34,6 +34,9 @@ private:
     unsigned int _currentExpressionDepth;
     unsigned int _currentStatementDepth;
 
+    bool _returnValue;
+
+
     const Expression* _currentExpression;
     const Statement* _currentStatement;
 
@@ -55,6 +58,9 @@ public:
 
     static const std::string stackPointerRegister;
     static const std::string stackFrameRegister;
+
+
+    static const std::stringstream* assemblyAborted;
 
 
     Compiler(const std::vector<const Statement*>& statements, BitMode bitMode, const std::string& entryPoint) noexcept;
@@ -144,7 +150,8 @@ private:
     static void updateBinaryProcessingFlags(bool& processed, bool& processedFirst, bool& otherProcessedFirst) noexcept;
 
 
-    std::string getValueOfExpression(const Expression& expression);
+    Register& getValueOfExpression(const Expression& expression);
+    Register& getValue();
 
 
     static TypeSize stringToTypeSize(const std::string& type);

@@ -19,8 +19,6 @@ _start:
     syscall
 
 
-
-
 ; int32 main() block...
 main:
     ; stack frame begin
@@ -29,14 +27,19 @@ main:
     add rbp, 16
 
 
-    ; int32 value = $get()
-    mov rdi, get
-    call rdi
+    ; int32 value = 10
+    mov edi, 10
     sub rsp, 4
-    mov [rsp], eax
+    mov [rsp], edi
+
+    ; $value()
+    mov edi, [rsp]
+    call edi
+    mov edi, eax
 
     ; return 0
-    mov eax, 0
+    mov esi, 0
+    mov eax, esi
 
     ; stack frame end
     sub rbp, 16
@@ -45,39 +48,7 @@ main:
 
     ret
 
-; int32 get() block...
-get:
-    ; stack frame begin
-    push rbp
-    mov rbp, rsp
-    add rbp, 16
 
 
-    ; return $get2
-    mov rax, get2
 
-    ; stack frame end
-    sub rbp, 16
-    mov rsp, rbp
-    pop rbp
-
-    ret
-
-; int32 get2() block...
-get2:
-    ; stack frame begin
-    push rbp
-    mov rbp, rsp
-    add rbp, 16
-
-
-    ; return 10
-    mov eax, 10
-
-    ; stack frame end
-    sub rbp, 16
-    mov rsp, rbp
-    pop rbp
-
-    ret
 

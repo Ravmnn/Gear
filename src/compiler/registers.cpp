@@ -183,11 +183,8 @@ RegisterManager::RegisterManager()
         RegisterFamily({ "r9", "r9d", "r9w", "r9b" }, RegisterFamily::R9),
         RegisterFamily({ "r10", "r10d", "r10w", "r10b" }, RegisterFamily::R10),
         RegisterFamily({ "r11", "r11d", "r11w", "r11b" }, RegisterFamily::R11),
-    }),
-    _returnRegister(RegisterFamily({ "rax", "eax", "ax", "al" }, RegisterFamily::AX, true))
-{
-    _prioritizeReturnRegister = false;
-}
+    }), _returnRegister(RegisterFamily({ "rax", "eax", "ax", "al" }, RegisterFamily::AX))
+{}
 
 
 
@@ -197,22 +194,15 @@ const std::array<RegisterFamily, 8>& RegisterManager::generalRegisters() const n
 }
 
 
-RegisterFamily& RegisterManager::returnRegister() noexcept
-{
-    return _returnRegister;
-}
-
-
 const std::vector<RegisterFamily*>& RegisterManager::busyRegisters() const noexcept
 {
     return _busyRegisters;
 }
 
 
-
-void RegisterManager::prioritizeReturnRegister() noexcept
+RegisterFamily& RegisterManager::returnRegister() noexcept
 {
-    _prioritizeReturnRegister = true;
+    return _returnRegister;
 }
 
 
@@ -297,20 +287,29 @@ void RegisterManager::freeAllBusyRegisters() noexcept
 
 Register& RegisterManager::getFirstFreeRegisterOfSize(const ASMTypeSize size)
 {
-    // TODO: terrible approach, improve
-
-    if (_prioritizeReturnRegister)
-    {
-        _prioritizeReturnRegister = false;
-
-        if (!_returnRegister.isBusy())
-            return _returnRegister.getRegisterOfSize(size);
-    }
-
-    else
-        for (RegisterFamily& generalRegister : _generalRegisters)
-            if (!generalRegister.isBusy())
-                return generalRegister.getRegisterOfSize(size);
+    for (RegisterFamily& generalRegister : _generalRegisters)
+        if (!generalRegister.isBusy())
+            return generalRegister.getRegisterOfSize(size);
 
     throw internal_e0000();
+}
+
+
+Register& RegisterManager::getRegisterOfName(const std::string& name)
+{
+    for (RegisterFamily& registerFamily : _generalRegisters)
+        if (registerFamily.hasRegister(name))
+            return registerFamily.getRegisterOfName(name);
+
+    throw internal_e0000_argument();
+}
+
+
+RegisterFamily& RegisterManager::getRegisterFamilyOfId(unsigned int familyId)
+{
+    for (RegisterFamily& registerFamily : _generalRegisters)
+        if (registerFamily.familyId() == familyId)
+            return registerFamily;
+            
+    throw internal_e0000_argument();
 }

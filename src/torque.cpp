@@ -28,6 +28,8 @@ TorqueOptions::TorqueOptions() noexcept
     link = true;
 
     commentAsm = true;
+
+    showAbortedAssembly = false;
 }
 
 

@@ -30,6 +30,8 @@ struct TorqueOptions
 
     bool commentAsm;
 
+    bool showAbortedAssembly;
+
 
     Compiler initializeCompilerFromThis(const std::vector<const Statement*>& statements) const noexcept;
 };

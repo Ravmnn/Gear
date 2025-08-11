@@ -11,7 +11,6 @@
 
 
 
-// TODO: add support to function calling (and returning values)
 // TODO: add support to function arguments
 // TODO: add support to external functions
 // TODO: add basic stdlib
@@ -33,7 +32,9 @@ const ASMTypeSize Compiler::asmDefaultTypeSize = ASMTypeSize::DWord;
 
 const std::string Compiler::stackPointerRegister = "rsp";
 const std::string Compiler::stackFrameRegister = "rbp";
-//const std::string Compiler::returnRegister = "rax";
+
+
+const std::stringstream* Compiler::assemblyAborted = nullptr;
 
 
 
@@ -49,6 +50,8 @@ Compiler::Compiler(const std::vector<const Statement*>& statements, const BitMod
 
     _currentExpression = nullptr;
     _currentStatement = nullptr;
+
+    _returnValue = false;
 
 
     _bitMode = bitMode;
@@ -116,9 +119,17 @@ void Compiler::compile()
 {
     throwIfAnyNullStatement(_statements);
     
-    code();
-    startLabel();
-    finish();
+    try
+    {
+        code();
+        startLabel();
+        finish();
+    }
+    catch (const InternalException& exception)
+    {
+        assemblyAborted = new std::stringstream(_code.get());
+        throw exception;
+    }
 }
 
 
@@ -184,7 +195,7 @@ void Compiler::finish()
 
     _asm.insertOther(_start);
 
-    _asm.newline(4);
+    _asm.newline(2);
 
 
     
@@ -385,12 +396,6 @@ void Compiler::process(const Statement& statement)
 {
     instantComment(_code, _astPrinter.print(statement));
 
-    const RegisterFamily& returnRegister = _registers.returnRegister();
-
-    // pop return register if it's busy
-    if (returnRegister.isBusy())
-        _registers.popRegisterOfFamily(returnRegister.familyId());
-
 
     const Statement* oldStatement = _currentStatement;
     _currentStatement = &statement;
@@ -403,9 +408,12 @@ void Compiler::process(const Statement& statement)
 
     _code.newline();
 
+    // after a statement ends, all registers are supposed to be free.
+    // note that only one register is supposed to be busy at the end of a statement.
+    if (!_returnValue)
+        _registers.freeAllBusyRegisters();
 
-    // after a statement ends, all registers are supposed to be free
-    _registers.freeAllBusyRegisters();
+    _returnValue = false;
 }
 
 
@@ -426,9 +434,9 @@ void Compiler::processExpression(const ExpressionStatement& statement)
 void Compiler::processDeclaration(const DeclarationStatement& statement)
 {
     const ASMTypeSize size = (ASMTypeSize)stringToTypeSize(statement.type.lexeme);
-    const std::string value = getValueOfExpression(*statement.value);
+    const Register& value = getValueOfExpression(*statement.value);
 
-    allocateIdentifierOnStack(Identifier{ statement.name.lexeme, size, statement.name.position }, value);
+    allocateIdentifierOnStack(Identifier{ statement.name.lexeme, size, statement.name.position }, value.name());
 }
 
 
@@ -454,6 +462,7 @@ void Compiler::processFunctionDeclaration(const FunctionDeclarationStatement& st
     _code.instruction("ret");
 
     _code.disableIndent();
+    _code.newline(4);
 
 
     _scopeLocal = oldScope;
@@ -462,9 +471,10 @@ void Compiler::processFunctionDeclaration(const FunctionDeclarationStatement& st
 
 void Compiler::processReturn(const ReturnStatement& statement)
 {
-    _registers.prioritizeReturnRegister();
+    const Register& value = getValueOfExpression(*statement.expression);
+    const Register& returnRegister = _registers.returnRegister().getRegisterOfSize(value.size());
 
-    process(*statement.expression);
+    _code.instruction("mov", returnRegister.name(), value.name());
 }
 
 
@@ -539,26 +549,34 @@ void Compiler::processBinary(const BinaryExpression& expression)
 
     processBinaryOperands(expression, leftProcessed, rightProcessed, leftProcessedFirst, rightProcessedFirst);
 
-    Register right = _registers.popLastRegisterFromBusy();
-    Register left = _registers.popLastRegisterFromBusy();
+    Register* left = nullptr;
+    Register* right = nullptr;
 
-    if (rightProcessedFirst)
-        std::swap(left, right);
+    if (leftProcessedFirst)
+    {
+        right = &getValue();
+        left = &getValue();
+    }
+    else
+    {
+        left = &getValue();
+        right = &getValue();
+    }
 
     // the result of a binary operation is stored in the left register,
     // so it's needed to re-occupy it after consuming (freeing) it to avoid
     // the loss of the result
 
-    _registers.pushRegisterToBusy(left);
+    _registers.pushRegisterToBusy(*left);
 
     switch (expression.op.type)
     {
     case TokenType::Plus:
-        _code.instruction("add", left.name(), right.name());
+        _code.instruction("add", left->name(), right->name());
         break;
 
     case TokenType::Minus:
-        _code.instruction("sub", left.name(), right.name());
+        _code.instruction("sub", left->name(), right->name());
         break;
 
     default:
@@ -590,27 +608,22 @@ void Compiler::processIdentifier(const IdentifierExpression& expression)
 void Compiler::processCall(const CallExpression& expression)
 {
     // TODO: detect whether the callee is a function or not
-
     const IdentifierExpression* const identifier = dynamic_cast<const IdentifierExpression*>(expression.callee);
 
     if (!identifier)
         throw internal_e0000();
 
     const std::string function = identifier->identifier.lexeme;
+    const ASMTypeSize returnSize = _scope.getIdentifier(function)->size;
 
-    // return type size of the function
-    const ASMTypeSize registerSize = _scope.getIdentifier(function)->size;
-    Register& returnRegister = _registers.returnRegister().getRegisterOfSize(registerSize);
+    const Register& callee = getValueOfExpression(*expression.callee);
+    _code.instruction("call", callee.name());
 
-    // when calling a function, if it returns any value, it's necessary to push the return register (rax)
-    // to busy, so we can get its value later.
+    // move the return value from AX to a general register immediately
+    const Register& returnRegister = _registers.returnRegister().getRegisterOfSize(returnSize);
+    moveToFirstFreeRegisterOfSize(returnSize, returnRegister.name());
 
-    _registers.pushRegisterToBusy(returnRegister);
-
-
-    const std::string value = getValueOfExpression(*expression.callee);
-
-    _code.instruction("call", value);
+    _returnValue = true;
 }
 
 
@@ -663,11 +676,17 @@ void Compiler::updateBinaryProcessingFlags(bool& processed, bool& processedFirst
 
 
 
-std::string Compiler::getValueOfExpression(const Expression& expression)
+Register& Compiler::getValueOfExpression(const Expression& expression)
 {
     process(expression);
 
-    return _registers.popLastRegisterFromBusy().name();
+    return getValue();
+}
+
+
+Register& Compiler::getValue()
+{
+    return _registers.popLastRegisterFromBusy();
 }
 
 

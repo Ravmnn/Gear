@@ -114,11 +114,9 @@ class RegisterManager
 {
 private:
     std::array<RegisterFamily, 8> _generalRegisters;
-    RegisterFamily _returnRegister;
-
     std::vector<RegisterFamily*> _busyRegisters;
 
-    bool _prioritizeReturnRegister;
+    RegisterFamily _returnRegister;
 
 
 public:
@@ -126,12 +124,9 @@ public:
 
 
     const std::array<RegisterFamily, 8>& generalRegisters() const noexcept;
-    RegisterFamily& returnRegister() noexcept;
-
     const std::vector<RegisterFamily*>& busyRegisters() const noexcept;
 
-
-    void prioritizeReturnRegister() noexcept;
+    RegisterFamily& returnRegister() noexcept;
 
 
     std::string print() const noexcept;
@@ -147,4 +142,7 @@ public:
 
 
     Register& getFirstFreeRegisterOfSize(ASMTypeSize size);
+
+    Register& getRegisterOfName(const std::string& name);
+    RegisterFamily& getRegisterFamilyOfId(unsigned int familyId);
 };
