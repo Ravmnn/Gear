@@ -68,10 +68,11 @@ void IdentifierManager::clear() noexcept
 
 unsigned int IdentifierManager::sizeOfCurrentScopeInBytes() const noexcept
 {
+    const unsigned int marker = _scopeMarkers.top();
     unsigned int sizeInBytes = 0;
 
-    for (const Identifier& identifier : _identifiers)
-        sizeInBytes += (unsigned int)identifier.size;
+    for (size_t i = _identifiers.size() - 1; i >= marker; i--)
+        sizeInBytes += (unsigned int)_identifiers[i].size;
 
     return sizeInBytes;
 }

@@ -19,7 +19,8 @@ _start:
     syscall
 
 
-; int32 main() block...
+
+; int32 main()block...
 main:
     ; stack frame begin
     push rbp
@@ -56,6 +57,27 @@ main:
     sub rsp, 1
     mov [rsp], sil
 
+    ; block...
+    ; start
+
+    ; int8 inner = 1
+    mov edi, 1
+    sub rsp, 1
+    mov [rsp], edi
+
+    ; int64 innera = 1
+    mov edi, 1
+    sub rsp, 8
+    mov [rsp], edi
+
+    add rsp, 9
+
+    ; end
+
+    ; $smallResult
+    mov dil, [rsp] ; smallResult
+
+
     ; stack frame end
     sub rbp, 16
     mov rsp, rbp
@@ -67,7 +89,7 @@ main:
 
 
 
-; int8 get() block...
+; int8 get()block...
 get:
     ; stack frame begin
     push rbp
@@ -78,6 +100,7 @@ get:
     ; return 3
     mov edi, 3
     mov eax, edi
+
 
     ; stack frame end
     sub rbp, 16

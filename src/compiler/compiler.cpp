@@ -18,7 +18,6 @@
 // TODO: add support to negative numbers
 // TODO: add support to float numbers
 // TODO: detect overflows
-// TODO: add support to type convertions
 // TODO: add support to multiply and division operation
 // TODO: add support to strings
 // TODO: add support to arrays
@@ -195,7 +194,7 @@ void Compiler::finish()
 
     _asm.insertOther(_start);
 
-    _asm.newline(2);
+    _asm.newline(3);
 
 
     
@@ -334,9 +333,9 @@ void Compiler::cast(Register& value, const ASMTypeSize size)
     Register& target = _registers.getFirstFreeRegisterOfSize(size);
 
     if (sourceSize < targetSize)
-        moveZeroExtendToFreeRegister(target, value.name());
+        moveZeroExtendToFreeRegister(target, value.name()); // cast up
     else
-        moveToFreeRegister(target, rightSizeSource.name());
+        moveToFreeRegister(target, rightSizeSource.name()); // cast down
 
     // the register storing the original value is now useless
     _registers.freeRegister(rightSizeSource);
@@ -346,8 +345,6 @@ void Compiler::cast(Register& value, const ASMTypeSize size)
 
 void Compiler::stackFrameBegin() noexcept
 {
-    // TODO: make _identifiers' scope handling work with stack frame
-
     instantComment(_code, "stack frame begin");
     _code.instruction("push", stackFrameRegister);
     _code.instruction("mov", stackFrameRegister, stackPointerRegister);
@@ -358,6 +355,7 @@ void Compiler::stackFrameBegin() noexcept
 
 void Compiler::stackFrameEnd() noexcept
 {
+    _code.newline();
     instantComment(_code, "stack frame end");
     _code.instruction("sub", stackFrameRegister, "16");
     _code.instruction("mov", stackPointerRegister, stackFrameRegister);
@@ -377,6 +375,7 @@ void Compiler::scopeEnd() noexcept
 {
     const std::string sizeInBytesString = std::to_string(_scopeLocal.sizeOfCurrentScopeInBytes());
 
+    println("size: ", sizeInBytesString);
     _scopeLocal.scopeEnd();
 
     _code.instruction("add", stackPointerRegister, sizeInBytesString);

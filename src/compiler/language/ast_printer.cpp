@@ -241,7 +241,7 @@ void ASTPrinter::processBlock(const BlockStatement& statement)
 {
     if (_ignoreBlocks)
     {
-        _stream << " block...";
+        _stream << "block...";
         return;
     }
 
