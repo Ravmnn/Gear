@@ -22,11 +22,17 @@ type_identifier = identifier;
 number = digits;
 boolean = "true" | "false";
 
-expression = literal | binary;
 
-binary = expression, "+" | "-" | "*" | "/", expression;
+expression = binary_expression | call_expression | cast_expression | identifier_expression |
+                grouping_expression | literal_expression;
 
-literal = number | boolean | identifier;
+binary_expression = expression, "+" | "-" | "*" | "/", expression;
+call_expression = identifier_expression, "(", [ expression, { ",", expression } ], ")";
+cast_expression = expression, "as", type_identifier;
+
+identifier_expression = identifier;
+grouping_expression = "(", expression, ")";
+literal_expression = number | boolean;
 
 ```
 
@@ -45,7 +51,7 @@ variable_declaration = type_identifier, identifier, "=", expression, ";";
 
 parameter_declaration = type_identifier, identifier;
 function_declaration = type_identifier, identifier,
-                            "(", { parameter_declaration, [",", parameter_declaration] }, ")",
+                            "(", [ parameter_declaration, { ",", parameter_declaration } ], ")",
                             block_statement;
 
 return_statement = "return", expression, ";";
