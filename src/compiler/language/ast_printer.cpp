@@ -218,7 +218,7 @@ void ASTPrinter::processFunctionDeclaration(const FunctionDeclarationStatement& 
         _stream << parameter.type.lexeme << " " << parameter.name.lexeme << (!atEnd ? ", " : "");
     }
 
-    _stream << ")" << newlineChar();
+    _stream << ")" << ' ' << newlineChar();
 
     process(*statement.body);
     

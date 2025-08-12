@@ -161,3 +161,8 @@ InternalException internal_e0003() noexcept
 {
     return InternalException(3, "There are no free registers.");
 }
+
+InternalException internal_e0004(const std::string& entryPoint) noexcept
+{
+    return InternalException(4, "Entry point \""+ entryPoint + "\" is not defined.");
+}

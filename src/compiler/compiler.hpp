@@ -23,6 +23,8 @@ private:
     AssemblyGenerator _start;
     AssemblyGenerator _code;
 
+    AssemblyGenerator* _current;
+
     ASTPrinter _astPrinter;
 
     RegisterManager _registers;
@@ -100,8 +102,8 @@ private:
     CompilerException internalException5ToCompilerException(const InternalException& exception) const;
 
 
-    void comment(AssemblyGenerator& generator, const std::string& comment) noexcept;
-    void instantComment(AssemblyGenerator& generator, const std::string& comment) noexcept;
+    void comment(const std::string& comment) noexcept;
+    void instantComment(const std::string& comment) noexcept;
 
 
     void moveToFreeRegister(Register& reg, const std::string& data);
@@ -110,6 +112,8 @@ private:
 
     void allocateIdentifierOnStack(const Identifier& identifier, const std::string& value = "0");
 
+
+    void call(const std::string& function);
 
     void cast(Register& value, const ASMTypeSize size);
 

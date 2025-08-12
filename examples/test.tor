@@ -6,6 +6,8 @@ int32 main() start
     int8 smallResult = result as int8;
 
     smallResult;
+
+    return 0;
 end
 
 

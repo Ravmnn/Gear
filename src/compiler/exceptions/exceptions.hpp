@@ -45,3 +45,4 @@ InternalException internal_e0000_argument() noexcept;
 InternalException internal_e0001() noexcept;
 InternalException internal_e0002() noexcept;
 InternalException internal_e0003() noexcept;
+InternalException internal_e0004(const std::string& entryPoint) noexcept;

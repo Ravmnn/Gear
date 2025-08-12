@@ -11,6 +11,12 @@
 
 
 
+// TODO: code cleanup
+
+
+
+// TODO: support 16 and 32 bit mode
+
 // TODO: add support to function arguments
 // TODO: add support to external functions
 // TODO: add basic stdlib
@@ -43,6 +49,8 @@ Compiler::Compiler(const std::vector<const Statement*>& statements, const BitMod
     _astPrinter.setIgnoreBlocks(true);
     _astPrinter.setNoNewlines(true);
 
+
+    _current = nullptr;
 
     _currentExpressionDepth = 0;
     _currentStatementDepth = 0;
@@ -122,6 +130,7 @@ void Compiler::compile()
     {
         code();
         startLabel();
+
         finish();
     }
     catch (const InternalException& exception)
@@ -134,6 +143,8 @@ void Compiler::compile()
 
 void Compiler::code()
 {
+    _current = &_code;
+
     std::vector<const FunctionDeclarationStatement*> functions = statementsToFunctions(_statements);
 
     // function identifiers should be defined before they are processed
@@ -152,21 +163,32 @@ void Compiler::code()
 
 void Compiler::startLabel()
 {
+    _current = &_start;
+
+    if (!_scope.isIdentifierDefined(_entryPoint))
+        throw internal_e0004(_entryPoint);
+
     _start.nasmDirectiveGlobal(startLabelName);
     _start.label(startLabelName);
     
     _start.enableIndent();
 
 
-    comment(_start, "init stack frame");
+    comment("init stack frame");
     _start.instruction("mov", "rbp", "rsp");
     _start.newline();
 
-    _start.instruction("call", _entryPoint);
+    // TODO: when Torque support void functions, detect here
+    call(_entryPoint);
     _start.newline();
 
-    instantComment(_start, "syscall exit");
-    _start.syscallExit("0"); // TODO: use return value of main instead
+    cast(getValue(), ASMTypeSize::QWord);
+    Register& exitCode = consumeValue();
+    
+    _current->newline();
+
+    instantComment("syscall exit");
+    _start.syscallExit(exitCode.name());
 
 
     _start.disableIndent();
@@ -175,6 +197,8 @@ void Compiler::startLabel()
 
 void Compiler::finish()
 {
+    _current = nullptr;
+
     _asm.nasmDirectiveBits(_bitMode);
     _asm.newline(2);
 
@@ -276,30 +300,30 @@ CompilerException Compiler::internalException5ToCompilerException(const Internal
 
 
 
-void Compiler::comment(AssemblyGenerator& generator, const std::string& comment) noexcept
+void Compiler::comment(const std::string& comment) noexcept
 {
     if (_shouldComment)
-        generator.comment(comment);
+        _current->comment(comment);
 }
 
-void Compiler::instantComment(AssemblyGenerator& generator, const std::string& comment) noexcept
+void Compiler::instantComment(const std::string& comment) noexcept
 {
     if (_shouldComment)
-        generator.instantComment(comment);
+        _current->instantComment(comment);
 }
 
 
 
 void Compiler::moveToFreeRegister(Register& reg, const std::string& data)
 {
-    _code.instruction("mov", reg.name(), data);
+    _current->instruction("mov", reg.name(), data);
     _registers.pushRegisterToBusy(reg);
 }
 
 
 void Compiler::moveZeroExtendToFreeRegister(Register& reg, const std::string& data)
 {
-    _code.instruction("movzx", reg.name(), data);
+    _current->instruction("movzx", reg.name(), data);
     _registers.pushRegisterToBusy(reg);
 }
 
@@ -318,8 +342,28 @@ void Compiler::allocateIdentifierOnStack(const Identifier& identifier, const std
     const std::string sizeInBytesString = std::to_string((unsigned int)identifier.size);
     const std::string address = addressOfIdentifierOnStack(identifier);
 
-    _code.instruction("sub", stackPointerRegister, sizeInBytesString);
-    _code.instruction("mov", address, value);
+    _current->instruction("sub", stackPointerRegister, sizeInBytesString);
+    _current->instruction("mov", address, value);
+}
+
+
+
+void Compiler::call(const std::string& function)
+{
+    const Identifier* const identifier = _scope.getIdentifier(function);
+
+    if (!identifier)
+        throw internal_e0000_argument();
+
+    const ASMTypeSize returnSize = identifier->size;
+
+    // processing expression "identifier" is not necessary
+
+    _current->instruction("call", function);
+
+    // move the return value from AX to a general register immediately
+    const Register& returnRegister = _registers.returnRegister().getRegisterOfSize(returnSize);
+    moveToFirstFreeRegisterOfSize(returnSize, returnRegister.name());
 }
 
 
@@ -332,7 +376,13 @@ void Compiler::cast(Register& value, const ASMTypeSize size)
     Register& rightSizeSource = value.family()->getRegisterOfSize(size);
     Register& target = _registers.getFirstFreeRegisterOfSize(size);
 
-    if (sourceSize < targetSize)
+    bool isDWordToQWord = sourceSize == (unsigned int)ASMTypeSize::DWord
+                            && targetSize == (unsigned int)ASMTypeSize::QWord;
+
+    // movzx doesn't work when casting 32-bit to a 64-bit value,
+    // while mov does that automatically (only when in 64-bit mode)
+
+    if (sourceSize < targetSize && !isDWordToQWord)
         moveZeroExtendToFreeRegister(target, value.name()); // cast up
     else
         moveToFreeRegister(target, rightSizeSource.name()); // cast down
@@ -345,22 +395,22 @@ void Compiler::cast(Register& value, const ASMTypeSize size)
 
 void Compiler::stackFrameBegin() noexcept
 {
-    instantComment(_code, "stack frame begin");
-    _code.instruction("push", stackFrameRegister);
-    _code.instruction("mov", stackFrameRegister, stackPointerRegister);
-    _code.instruction("add", stackFrameRegister, "16");
-    _code.newline(2);
+    instantComment("stack frame begin");
+    _current->instruction("push", stackFrameRegister);
+    _current->instruction("mov", stackFrameRegister, stackPointerRegister);
+    _current->instruction("add", stackFrameRegister, "16");
+    _current->newline(2);
 }
 
 
 void Compiler::stackFrameEnd() noexcept
 {
-    _code.newline();
-    instantComment(_code, "stack frame end");
-    _code.instruction("sub", stackFrameRegister, "16");
-    _code.instruction("mov", stackPointerRegister, stackFrameRegister);
-    _code.instruction("pop", stackFrameRegister);
-    _code.newline();
+    _current->newline();
+    instantComment("stack frame end");
+    _current->instruction("sub", stackFrameRegister, "16");
+    _current->instruction("mov", stackPointerRegister, stackFrameRegister);
+    _current->instruction("pop", stackFrameRegister);
+    _current->newline();
 }
 
 
@@ -378,7 +428,7 @@ void Compiler::scopeEnd() noexcept
     println("size: ", sizeInBytesString);
     _scopeLocal.scopeEnd();
 
-    _code.instruction("add", stackPointerRegister, sizeInBytesString);
+    _current->instruction("add", stackPointerRegister, sizeInBytesString);
 }
 
 
@@ -418,7 +468,7 @@ std::string Compiler::addressOfIdentifierOnStack(const Identifier& identifier) c
 
 void Compiler::process(const Statement& statement)
 {
-    instantComment(_code, _astPrinter.print(statement));
+    instantComment(_astPrinter.print(statement));
 
 
     const Statement* oldStatement = _currentStatement;
@@ -430,7 +480,7 @@ void Compiler::process(const Statement& statement)
 
     _currentStatement = oldStatement;
 
-    _code.newline();
+    _current->newline();
 
     // after a statement ends, all registers are supposed to be free.
     // note that only one register is supposed to be busy at the end of a statement.
@@ -476,17 +526,17 @@ void Compiler::processFunctionDeclaration(const FunctionDeclarationStatement& st
 
     _scopeLocal.clear(); // function scope cannot access another function's scope
 
-    _code.label(statement.name.lexeme);
-    _code.enableIndent();
+    _current->label(statement.name.lexeme);
+    _current->enableIndent();
 
     stackFrameBegin();
     processFunctionBlock(*statement.body); // don't use Compiler::processBlock because it creates a scope. Function scope is handled by stack frames.
     stackFrameEnd();
 
-    _code.instruction("ret");
+    _current->instruction("ret");
 
-    _code.disableIndent();
-    _code.newline(4);
+    _current->disableIndent();
+    _current->newline(4);
 
 
     _scopeLocal = oldScope;
@@ -498,14 +548,14 @@ void Compiler::processReturn(const ReturnStatement& statement)
     const Register& value = consumeValueOfExpression(*statement.expression);
     const Register& returnRegister = _registers.returnRegister().getRegisterOfSize(value.size());
 
-    _code.instruction("mov", returnRegister.name(), value.name());
+    _current->instruction("mov", returnRegister.name(), value.name());
 }
 
 
 void Compiler::processBlock(const BlockStatement& statement)
 {
-    instantComment(_code, "start");
-    _code.newline();
+    instantComment("start");
+    _current->newline();
 
 
     scopeBegin();
@@ -513,8 +563,8 @@ void Compiler::processBlock(const BlockStatement& statement)
     scopeEnd();
 
 
-    _code.newline();
-    instantComment(_code, "end");
+    _current->newline();
+    instantComment("end");
 }
 
 
@@ -596,11 +646,11 @@ void Compiler::processBinary(const BinaryExpression& expression)
     switch (expression.op.type)
     {
     case TokenType::Plus:
-        _code.instruction("add", left->name(), right->name());
+        _current->instruction("add", left->name(), right->name());
         break;
 
     case TokenType::Minus:
-        _code.instruction("sub", left->name(), right->name());
+        _current->instruction("sub", left->name(), right->name());
         break;
 
     default:
@@ -625,7 +675,7 @@ void Compiler::processIdentifier(const IdentifierExpression& expression)
     const std::string value = isInstructionAddress ? identifier->name : addressOfIdentifierOnStack(*identifier);
     const ASMTypeSize registerSize = isInstructionAddress ? (ASMTypeSize)TypeSize::FPtr : identifier->size;
 
-    comment(_code, identifier->name);
+    comment(identifier->name);
     moveToFirstFreeRegisterOfSize(registerSize, value);
 }
 
@@ -639,15 +689,7 @@ void Compiler::processCall(const CallExpression& expression)
     if (!identifier)
         throw internal_e0000();
 
-    const std::string function = identifier->identifier.lexeme;
-    const ASMTypeSize returnSize = _scope.getIdentifier(function)->size;
-
-    const Register& callee = consumeValueOfExpression(*expression.callee);
-    _code.instruction("call", callee.name());
-
-    // move the return value from AX to a general register immediately
-    const Register& returnRegister = _registers.returnRegister().getRegisterOfSize(returnSize);
-    moveToFirstFreeRegisterOfSize(returnSize, returnRegister.name());
+    call(identifier->identifier.lexeme);
 
     _returnValue = true;
 }
