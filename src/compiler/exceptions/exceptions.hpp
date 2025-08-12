@@ -35,6 +35,7 @@ CompilerException torque_e3001(const TokenPosition& position) noexcept;
 CompilerException torque_e3002(const TokenPosition& position) noexcept;
 CompilerException torque_e3003(const TokenPosition& position) noexcept;
 CompilerException torque_e3004(const TokenPosition& position) noexcept;
+CompilerException torque_e3005(const TokenPosition& position) noexcept;
 
 
 

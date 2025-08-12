@@ -1,7 +1,12 @@
 int32 main() start
     int32 value = 10;
+    int8 newValue = value as int8;
 
-    value();
+    int64 result = value + (newValue + get()) as int32;
+    int8 smallResult = result as int8;
+end
 
-    return 0;
+
+int8 get() start
+    return 3;
 end

@@ -9,6 +9,7 @@ class BinaryExpression;
 class GroupingExpression;
 class IdentifierExpression;
 class CallExpression;
+class CastExpression;
 
 
 class ExpressionProcessor
@@ -19,6 +20,7 @@ public:
     virtual void processGrouping(const GroupingExpression& expression) = 0;
     virtual void processIdentifier(const IdentifierExpression& expression) = 0;
     virtual void processCall(const CallExpression& expression) = 0;
+    virtual void processCast(const CastExpression& expression) = 0;
 };
 
 
@@ -112,6 +114,26 @@ public:
 
     const Expression* const callee;
     const std::vector<const Expression*> arguments;
+
+
+    void process(ExpressionProcessor& processor) const override;
+
+
+    const Token& source() const noexcept override;
+};
+
+
+
+class CastExpression : public Expression
+{
+public:
+    CastExpression(const Token& keyword, const Expression* expression, const Token& type) noexcept;
+
+
+    const Token keyword;
+
+    const Expression* const expression;
+    const Token type;
 
 
     void process(ExpressionProcessor& processor) const override;

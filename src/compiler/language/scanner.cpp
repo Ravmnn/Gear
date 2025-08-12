@@ -47,7 +47,6 @@ void Scanner::scanToken()
     case '\n':
         break;
 
-    case '@': addToken(TokenType::Attribute); break;
     case ':': addToken(TokenType::Colon); break;
     case ';': addToken(TokenType::SemiColon); break;
     case ',': addToken(TokenType::Comma); break;

@@ -105,9 +105,13 @@ private:
 
 
     void moveToFreeRegister(Register& reg, const std::string& data);
+    void moveZeroExtendToFreeRegister(Register& reg, const std::string& data);
     void moveToFirstFreeRegisterOfSize(ASMTypeSize size, const std::string& data);
 
     void allocateIdentifierOnStack(const Identifier& identifier, const std::string& value = "0");
+
+
+    void cast(Register& value, const ASMTypeSize size);
 
 
     void stackFrameBegin() noexcept;
@@ -142,6 +146,7 @@ private:
     void processGrouping(const GroupingExpression& expression) override;
     void processIdentifier(const IdentifierExpression& expression) override;
     void processCall(const CallExpression& expression) override;
+    void processCast(const CastExpression& expression) override;
 
     void processBinaryOperands(const BinaryExpression& expression, bool& leftProcessed, bool& rightProcessed, bool& leftProcessedFirst, bool& rightProcessedFirst);
 
@@ -149,6 +154,9 @@ private:
     bool processExpressionIfNotLiteral(const Expression& expression);
     static void updateBinaryProcessingFlags(bool& processed, bool& processedFirst, bool& otherProcessedFirst) noexcept;
 
+
+    Register& consumeValueOfExpression(const Expression& expression);
+    Register& consumeValue();
 
     Register& getValueOfExpression(const Expression& expression);
     Register& getValue();

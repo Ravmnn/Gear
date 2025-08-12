@@ -310,3 +310,12 @@ void ASTPrinter::processCall(const CallExpression& expression)
 
     _stream << ")";
 }
+
+
+void ASTPrinter::processCast(const CastExpression& expression)
+{
+    _stream << '(';
+    process(*expression.expression);
+    _stream << ' ' << expression.keyword.lexeme << ' ' << expression.type.lexeme;
+    _stream << ')';
+}

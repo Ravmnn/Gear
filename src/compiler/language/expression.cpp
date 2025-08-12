@@ -97,3 +97,23 @@ const Token& CallExpression::source() const noexcept
 {
     return parenLeft;
 }
+
+
+
+
+
+CastExpression::CastExpression(const Token& keyword, const Expression* const expression, const Token& type) noexcept
+    : keyword(keyword), expression(expression), type(type)
+{}
+
+
+void CastExpression::process(ExpressionProcessor& processor) const
+{
+    processor.processCast(*this);
+}
+
+
+const Token& CastExpression::source() const noexcept
+{
+    return keyword;
+}

@@ -117,6 +117,11 @@ CompilerException torque_e3004(const TokenPosition& position) noexcept
     return CompilerException(4, "Operation depth is too complex and big, overpassed max register count.", position);
 }
 
+CompilerException torque_e3005(const TokenPosition& position) noexcept
+{
+    return CompilerException(5, "Only direct identifiers can be called as functions.", position);
+}
+
 
 
 

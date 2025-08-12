@@ -52,6 +52,8 @@ public:
     void instruction(const std::string& instruction, const std::string& op1) noexcept;
     void instruction(const std::string& instruction) noexcept;
 
+    void clearRegister(const std::string& reg) noexcept;
+
 
     void syscall(const std::string& code, const std::string& arg1 = "", const std::string& arg2 = "", const std::string& arg3 = "") noexcept;
     void syscallExit(const std::string& exitCode) noexcept;

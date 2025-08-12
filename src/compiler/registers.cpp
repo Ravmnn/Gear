@@ -176,7 +176,7 @@ Register& RegisterFamily::getRegisterOfName(const std::string& name)
 RegisterManager::RegisterManager()
     : _generalRegisters({
         RegisterFamily({ "rdi", "edi", "di", "dil" }, RegisterFamily::DI),
-        RegisterFamily({ "rsi", "esi", "si", "sl" }, RegisterFamily::SI),
+        RegisterFamily({ "rsi", "esi", "si", "sil" }, RegisterFamily::SI),
         RegisterFamily({ "rdx", "edx", "dx", "dl" }, RegisterFamily::DX),
         RegisterFamily({ "rcx", "ecx", "cx", "cl" }, RegisterFamily::CX),
         RegisterFamily({ "r8", "r8d", "r8w", "r8b" }, RegisterFamily::R8),
@@ -236,7 +236,36 @@ void RegisterManager::pushRegisterToBusy(Register& reg)
 
 
 
-Register& RegisterManager::popRegisterAtIndex(const size_t index)
+Register& RegisterManager::popBusyRegisterAtIndex(const size_t index)
+{
+    Register& busyRegister = getBusyRegisterAtIndex(index);
+    RegisterFamily& registerFamily = *busyRegister.family();
+
+    registerFamily.setBusyRegister(nullptr);
+    _busyRegisters.erase(_busyRegisters.cbegin() + index);
+
+    return busyRegister;
+}
+
+
+Register& RegisterManager::popLastBusyRegisterFromBusy()
+{
+    return popBusyRegisterAtIndex(_busyRegisters.size() - 1);
+}
+
+
+Register& RegisterManager::popBusyRegisterOfFamily(unsigned int familyId)
+{
+    for (size_t i = 0; i < _busyRegisters.size(); i++)
+        if (_busyRegisters[i]->familyId() == familyId)
+            return popBusyRegisterAtIndex(i);
+
+    throw internal_e0000_argument();
+}
+
+
+
+Register& RegisterManager::getBusyRegisterAtIndex(const size_t index)
 {
     if (_busyRegisters.empty())
         throw internal_e0000();
@@ -247,29 +276,31 @@ Register& RegisterManager::popRegisterAtIndex(const size_t index)
     RegisterFamily& registerFamily = *_busyRegisters[index];
     Register& busyRegister = *registerFamily.busyRegister();
 
-    registerFamily.setBusyRegister(nullptr);
-
-    _busyRegisters.erase(_busyRegisters.cbegin() + index);
-
     return busyRegister;
 }
 
 
-Register& RegisterManager::popLastRegisterFromBusy()
+Register& RegisterManager::getLastBusyRegisterFromBusy()
 {
-    return popRegisterAtIndex(_busyRegisters.size() - 1);
+    return getBusyRegisterAtIndex(_busyRegisters.size() - 1);
 }
 
 
-Register& RegisterManager::popRegisterOfFamily(unsigned int familyId)
+Register& RegisterManager::getBusyRegisterOfFamily(unsigned int familyId)
 {
     for (size_t i = 0; i < _busyRegisters.size(); i++)
         if (_busyRegisters[i]->familyId() == familyId)
-            return popRegisterAtIndex(i);
+            return getBusyRegisterAtIndex(i);
 
     throw internal_e0000_argument();
 }
 
+
+
+void RegisterManager::freeRegister(Register& reg)
+{
+    popBusyRegisterOfFamily(reg.family()->familyId());
+}
 
 
 void RegisterManager::freeAllBusyRegisters() noexcept
@@ -279,7 +310,7 @@ void RegisterManager::freeAllBusyRegisters() noexcept
         const RegisterFamily& registerFamily = *_busyRegisters[i];
 
         if (!registerFamily.manualFree())
-            popRegisterAtIndex(i);
+            popBusyRegisterAtIndex(i);
     }
 }
 

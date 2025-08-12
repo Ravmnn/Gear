@@ -144,6 +144,13 @@ void AssemblyGenerator::instruction(const std::string& instruction) noexcept
 
 
 
+void AssemblyGenerator::clearRegister(const std::string& reg) noexcept
+{
+    instruction("xor", reg, reg);
+}
+
+
+
 
 
 void AssemblyGenerator::syscall(const std::string& code, const std::string& arg1, const std::string& arg2, const std::string& arg3) noexcept

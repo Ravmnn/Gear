@@ -71,6 +71,7 @@ private:
     void processGrouping(const GroupingExpression& expression) override;
     void processIdentifier(const IdentifierExpression& expression) override;
     void processCall(const CallExpression& expression) override;
+    void processCast(const CastExpression& expression) override;
 
 
 };

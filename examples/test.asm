@@ -32,14 +32,52 @@ main:
     sub rsp, 4
     mov [rsp], edi
 
-    ; $value()
-    mov edi, [rsp]
-    call edi
-    mov edi, eax
+    ; int8 newValue = ($value as int8)
+    mov edi, [rsp] ; value
+    mov sil, dil
+    sub rsp, 1
+    mov [rsp], sil
 
-    ; return 0
-    mov esi, 0
-    mov eax, esi
+    ; int64 result = ($value + ((($newValue + $get())) as int32))
+    mov edi, [rsp + 1] ; value
+    mov sil, [rsp] ; newValue
+    mov rdx, get ; get
+    call rdx
+    mov dl, al
+    add sil, dl
+    movzx edx, sil
+    add edi, edx
+    sub rsp, 8
+    mov [rsp], edi
+
+    ; int8 smallResult = ($result as int8)
+    mov rdi, [rsp] ; result
+    mov sil, dil
+    sub rsp, 1
+    mov [rsp], sil
+
+    ; stack frame end
+    sub rbp, 16
+    mov rsp, rbp
+    pop rbp
+
+    ret
+
+
+
+
+
+; int8 get() block...
+get:
+    ; stack frame begin
+    push rbp
+    mov rbp, rsp
+    add rbp, 16
+
+
+    ; return 3
+    mov edi, 3
+    mov eax, edi
 
     ; stack frame end
     sub rbp, 16

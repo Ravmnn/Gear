@@ -28,7 +28,7 @@
 const std::string Compiler::startLabelName = "_start";
 
 const TypeSize Compiler::defaultTypeSize = TypeSize::Int32;
-const ASMTypeSize Compiler::asmDefaultTypeSize = ASMTypeSize::DWord;
+const ASMTypeSize Compiler::asmDefaultTypeSize = (ASMTypeSize)Compiler::defaultTypeSize;
 
 const std::string Compiler::stackPointerRegister = "rsp";
 const std::string Compiler::stackFrameRegister = "rbp";
@@ -294,7 +294,13 @@ void Compiler::instantComment(AssemblyGenerator& generator, const std::string& c
 void Compiler::moveToFreeRegister(Register& reg, const std::string& data)
 {
     _code.instruction("mov", reg.name(), data);
+    _registers.pushRegisterToBusy(reg);
+}
 
+
+void Compiler::moveZeroExtendToFreeRegister(Register& reg, const std::string& data)
+{
+    _code.instruction("movzx", reg.name(), data);
     _registers.pushRegisterToBusy(reg);
 }
 
@@ -315,6 +321,25 @@ void Compiler::allocateIdentifierOnStack(const Identifier& identifier, const std
 
     _code.instruction("sub", stackPointerRegister, sizeInBytesString);
     _code.instruction("mov", address, value);
+}
+
+
+
+void Compiler::cast(Register& value, const ASMTypeSize size)
+{
+    const unsigned int sourceSize = (unsigned int)value.size();
+    const unsigned int targetSize = (unsigned int)size;
+
+    Register& rightSizeSource = value.family()->getRegisterOfSize(size);
+    Register& target = _registers.getFirstFreeRegisterOfSize(size);
+
+    if (sourceSize < targetSize)
+        moveZeroExtendToFreeRegister(target, value.name());
+    else
+        moveToFreeRegister(target, rightSizeSource.name());
+
+    // the register storing the original value is now useless
+    _registers.freeRegister(rightSizeSource);
 }
 
 
@@ -434,7 +459,7 @@ void Compiler::processExpression(const ExpressionStatement& statement)
 void Compiler::processDeclaration(const DeclarationStatement& statement)
 {
     const ASMTypeSize size = (ASMTypeSize)stringToTypeSize(statement.type.lexeme);
-    const Register& value = getValueOfExpression(*statement.value);
+    const Register& value = consumeValueOfExpression(*statement.value);
 
     allocateIdentifierOnStack(Identifier{ statement.name.lexeme, size, statement.name.position }, value.name());
 }
@@ -471,7 +496,7 @@ void Compiler::processFunctionDeclaration(const FunctionDeclarationStatement& st
 
 void Compiler::processReturn(const ReturnStatement& statement)
 {
-    const Register& value = getValueOfExpression(*statement.expression);
+    const Register& value = consumeValueOfExpression(*statement.expression);
     const Register& returnRegister = _registers.returnRegister().getRegisterOfSize(value.size());
 
     _code.instruction("mov", returnRegister.name(), value.name());
@@ -554,13 +579,13 @@ void Compiler::processBinary(const BinaryExpression& expression)
 
     if (leftProcessedFirst)
     {
-        right = &getValue();
-        left = &getValue();
+        right = &consumeValue();
+        left = &consumeValue();
     }
     else
     {
-        left = &getValue();
-        right = &getValue();
+        left = &consumeValue();
+        right = &consumeValue();
     }
 
     // the result of a binary operation is stored in the left register,
@@ -601,13 +626,15 @@ void Compiler::processIdentifier(const IdentifierExpression& expression)
     const std::string value = isInstructionAddress ? identifier->name : addressOfIdentifierOnStack(*identifier);
     const ASMTypeSize registerSize = isInstructionAddress ? (ASMTypeSize)TypeSize::FPtr : identifier->size;
 
+    comment(_code, identifier->name);
     moveToFirstFreeRegisterOfSize(registerSize, value);
 }
 
 
 void Compiler::processCall(const CallExpression& expression)
 {
-    // TODO: detect whether the callee is a function or not
+    // TODO: choose if torque will accept first class functions.
+
     const IdentifierExpression* const identifier = dynamic_cast<const IdentifierExpression*>(expression.callee);
 
     if (!identifier)
@@ -616,7 +643,7 @@ void Compiler::processCall(const CallExpression& expression)
     const std::string function = identifier->identifier.lexeme;
     const ASMTypeSize returnSize = _scope.getIdentifier(function)->size;
 
-    const Register& callee = getValueOfExpression(*expression.callee);
+    const Register& callee = consumeValueOfExpression(*expression.callee);
     _code.instruction("call", callee.name());
 
     // move the return value from AX to a general register immediately
@@ -624,6 +651,15 @@ void Compiler::processCall(const CallExpression& expression)
     moveToFirstFreeRegisterOfSize(returnSize, returnRegister.name());
 
     _returnValue = true;
+}
+
+
+void Compiler::processCast(const CastExpression& expression)
+{
+    Register& value = getValueOfExpression(*expression.expression);
+    const ASMTypeSize newSize = (ASMTypeSize)stringToTypeSize(expression.type.lexeme);
+
+    cast(value, newSize);
 }
 
 
@@ -676,6 +712,21 @@ void Compiler::updateBinaryProcessingFlags(bool& processed, bool& processedFirst
 
 
 
+Register& Compiler::consumeValueOfExpression(const Expression& expression)
+{
+    process(expression);
+
+    return consumeValue();
+}
+
+
+Register& Compiler::consumeValue()
+{
+    return _registers.popLastBusyRegisterFromBusy();
+}
+
+
+
 Register& Compiler::getValueOfExpression(const Expression& expression)
 {
     process(expression);
@@ -686,7 +737,7 @@ Register& Compiler::getValueOfExpression(const Expression& expression)
 
 Register& Compiler::getValue()
 {
-    return _registers.popLastRegisterFromBusy();
+    return _registers.getLastBusyRegisterFromBusy();
 }
 
 

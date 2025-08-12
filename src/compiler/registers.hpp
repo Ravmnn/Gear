@@ -134,10 +134,15 @@ public:
 
     void pushRegisterToBusy(Register& reg);
 
-    Register& popRegisterAtIndex(size_t index);
-    Register& popLastRegisterFromBusy();
-    Register& popRegisterOfFamily(unsigned int familyId);
+    Register& popBusyRegisterAtIndex(size_t index);
+    Register& popLastBusyRegisterFromBusy();
+    Register& popBusyRegisterOfFamily(unsigned int familyId);
 
+    Register& getBusyRegisterAtIndex(size_t index);
+    Register& getLastBusyRegisterFromBusy();
+    Register& getBusyRegisterOfFamily(unsigned int familyId);
+
+    void freeRegister(Register& reg);
     void freeAllBusyRegisters() noexcept;
 
 

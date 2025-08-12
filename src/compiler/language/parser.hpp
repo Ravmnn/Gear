@@ -46,6 +46,7 @@ private:
     const Expression* expression();
     const Expression* term();
     const Expression* factor();
+    const Expression* cast();
     const Expression* call();
     std::vector<const Expression*> arguments();
     const Expression* primary();

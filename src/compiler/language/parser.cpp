@@ -198,13 +198,28 @@ const Expression* Parser::term()
 
 const Expression* Parser::factor()
 {
-    const Expression* expression = call();
+    const Expression* expression = cast();
 
     while (match({ TokenType::Star, TokenType::Slash }))
     {
         const Token op = previous();
-        const Expression* const right = call();
+        const Expression* const right = cast();
         expression = new BinaryExpression(expression, op, right);
+    }
+
+    return expression;
+}
+
+
+const Expression* Parser::cast()
+{
+    const Expression* expression = call();
+
+    while (match({ TokenType::KwAs }))
+    {
+        const Token keyword = previous();
+        const Token type = expectTypename();
+        expression = new CastExpression(keyword, expression, type);
     }
 
     return expression;
@@ -281,7 +296,6 @@ void Parser::synchronize() noexcept
         switch (peek().type)
         {
         case TokenType::Type:
-        case TokenType::KwFunction:
         case TokenType::KwReturn:
             return;
         }
