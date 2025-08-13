@@ -1,7 +1,5 @@
 #include <compiler/assembly/assembly_generator.hpp>
 
-#include <compiler/assembly/nasm.hpp>
-
 
 
 AssemblyGenerator::AssemblyGenerator()

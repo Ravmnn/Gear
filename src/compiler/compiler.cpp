@@ -5,13 +5,8 @@
 #include <compiler/language/statement.hpp>
 #include <compiler/language/expression.hpp>
 #include <compiler/exceptions/exceptions.hpp>
-#include <compiler/assembly/nasm.hpp>
 #include <compiler/sizes.hpp>
 #include <log.hpp>
-
-
-
-// TODO: code cleanup
 
 
 
@@ -425,7 +420,6 @@ void Compiler::scopeEnd() noexcept
 {
     const std::string sizeInBytesString = std::to_string(_scopeLocal.sizeOfCurrentScopeInBytes());
 
-    println("size: ", sizeInBytesString);
     _scopeLocal.scopeEnd();
 
     _current->instruction("add", stackPointerRegister, sizeInBytesString);
@@ -469,7 +463,6 @@ std::string Compiler::addressOfIdentifierOnStack(const Identifier& identifier) c
 void Compiler::process(const Statement& statement)
 {
     instantComment(_astPrinter.print(statement));
-
 
     const Statement* oldStatement = _currentStatement;
     _currentStatement = &statement;
