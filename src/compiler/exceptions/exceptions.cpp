@@ -2,6 +2,8 @@
 
 #include <sstream>
 
+#include <compiler/assembly/assembly_generator.hpp>
+
 
 
 ScannerException torque_e1000(const TokenPosition& position) noexcept
@@ -122,6 +124,11 @@ CompilerException torque_e3005(const TokenPosition& position) noexcept
     return CompilerException(5, "Only direct identifiers can be called as functions.", position);
 }
 
+CompilerException torque_e3006(const TokenPosition& position) noexcept
+{
+    return CompilerException(6, "Operands must have the same type.", position);
+}
+
 
 
 
@@ -165,4 +172,9 @@ InternalException internal_e0003() noexcept
 InternalException internal_e0004(const std::string& entryPoint) noexcept
 {
     return InternalException(4, "Entry point \""+ entryPoint + "\" is not defined.");
+}
+
+InternalException internal_e0005(const BitMode bitMode) noexcept
+{
+    return InternalException(5, "Type not available in " + std::to_string((unsigned int)bitMode) + " bit mode.");
 }

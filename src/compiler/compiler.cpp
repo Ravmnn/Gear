@@ -6,6 +6,8 @@
 #include <compiler/language/expression.hpp>
 #include <compiler/exceptions/exceptions.hpp>
 #include <compiler/sizes.hpp>
+#include <compiler/type_checker.hpp>
+#include <torque.hpp>
 #include <log.hpp>
 
 
@@ -27,9 +29,6 @@
 
 const std::string Compiler::startLabelName = "_start";
 
-const TypeSize Compiler::defaultTypeSize = TypeSize::Int32;
-const ASMTypeSize Compiler::asmDefaultTypeSize = (ASMTypeSize)Compiler::defaultTypeSize;
-
 const std::string Compiler::stackPointerRegister = "rsp";
 const std::string Compiler::stackFrameRegister = "rbp";
 
@@ -39,7 +38,7 @@ const std::stringstream* Compiler::assemblyAborted = nullptr;
 
 
 Compiler::Compiler(const std::vector<const Statement*>& statements, const BitMode bitMode, const std::string& entryPoint) noexcept
-    : _scopeLocal(_scope.local()), _scopeGlobal(_scope.global()), _statements(statements)
+    : _typeChecker(*this), _scopeLocal(_scope.local()), _scopeGlobal(_scope.global()), _statements(statements)
 {
     _astPrinter.setIgnoreBlocks(true);
     _astPrinter.setNoNewlines(true);
@@ -467,6 +466,8 @@ void Compiler::process(const Statement& statement)
     const Statement* oldStatement = _currentStatement;
     _currentStatement = &statement;
 
+    _typeChecker.process(statement);
+
     _currentStatementDepth++;
     statement.process(*this);
     _currentStatementDepth--;
@@ -500,7 +501,7 @@ void Compiler::processExpression(const ExpressionStatement& statement)
 
 void Compiler::processDeclaration(const DeclarationStatement& statement)
 {
-    const ASMTypeSize size = (ASMTypeSize)stringToTypeSize(statement.type.lexeme);
+    const ASMTypeSize size = (ASMTypeSize)TypeChecker::stringToTypeSize(statement.type.lexeme);
     const Register& value = consumeValueOfExpression(*statement.value);
 
     allocateIdentifierOnStack(Identifier{ statement.name.lexeme, size, statement.name.position }, value.name());
@@ -571,7 +572,7 @@ void Compiler::processFunctionBlock(const BlockStatement& statement)
 
 void Compiler::defineFunctionIdentifierInGlobal(const FunctionDeclarationStatement& statement)
 {
-    const ASMTypeSize returnType = (ASMTypeSize)stringToTypeSize(statement.returnType.lexeme);
+    const ASMTypeSize returnType = (ASMTypeSize)TypeChecker::stringToTypeSize(statement.returnType.lexeme);
     const Identifier identifier = Identifier{ statement.name.lexeme, returnType, statement.source().position, true };
 
     _scopeGlobal.defineIdentifier(identifier);
@@ -602,7 +603,7 @@ void Compiler::processLiteral(const LiteralExpression& expression)
     if (expression.value.isBoolean())
         value = std::to_string((int)Token::stringToBoolean(value));
 
-    moveToFirstFreeRegisterOfSize(asmDefaultTypeSize, value);
+    moveToFirstFreeRegisterOfSize(Torque::sizes()->defaultAsmTypeSize(), value);
 }
 
 
@@ -666,7 +667,7 @@ void Compiler::processIdentifier(const IdentifierExpression& expression)
     const bool isInstructionAddress = identifier->isInstructionAddress;
 
     const std::string value = isInstructionAddress ? identifier->name : addressOfIdentifierOnStack(*identifier);
-    const ASMTypeSize registerSize = isInstructionAddress ? (ASMTypeSize)TypeSize::FPtr : identifier->size;
+    const ASMTypeSize registerSize = isInstructionAddress ? (ASMTypeSize)TypeSize::UInt64 : identifier->size;
 
     comment(identifier->name);
     moveToFirstFreeRegisterOfSize(registerSize, value);
@@ -691,7 +692,7 @@ void Compiler::processCall(const CallExpression& expression)
 void Compiler::processCast(const CastExpression& expression)
 {
     Register& value = getValueOfExpression(*expression.expression);
-    const ASMTypeSize newSize = (ASMTypeSize)stringToTypeSize(expression.type.lexeme);
+    const ASMTypeSize newSize = (ASMTypeSize)TypeChecker::stringToTypeSize(expression.type.lexeme);
 
     cast(value, newSize);
 }
@@ -772,27 +773,6 @@ Register& Compiler::getValueOfExpression(const Expression& expression)
 Register& Compiler::getValue()
 {
     return _registers.getLastBusyRegisterFromBusy();
-}
-
-
-
-
-
-TypeSize Compiler::stringToTypeSize(const std::string& type)
-{
-    if (type == "byte") return TypeSize::Byte;
-    if (type == "char") return TypeSize::Char;
-    if (type == "bool") return TypeSize::Bool;
-    if (type == "uint8") return TypeSize::UInt8;
-    if (type == "uint16") return TypeSize::UInt16;
-    if (type == "uint32") return TypeSize::UInt32;
-    if (type == "uint64") return TypeSize::UInt64;
-    if (type == "int8") return TypeSize::Int8;
-    if (type == "int16") return TypeSize::Int16;
-    if (type == "int32") return TypeSize::Int32;
-    if (type == "int64") return TypeSize::Int64;
-
-    throw internal_e0000_argument();
 }
 
 

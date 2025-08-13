@@ -76,6 +76,8 @@ std::string Torque::s_source = std::string();
 
 TorqueOptions Torque::s_options = TorqueOptions();
 
+SizeManager* Torque::s_sizes = nullptr;
+
 
 const std::string& Torque::name() noexcept
 {
@@ -105,6 +107,12 @@ const TorqueOptions& Torque::options() noexcept
 }
 
 
+const SizeManager* Torque::sizes() noexcept
+{
+    return s_sizes;
+}
+
+
 
 
 
@@ -112,6 +120,8 @@ void Torque::run(const TorqueOptions& options)
 {
     s_source = readFile(options.filePath);
     s_options = options;
+
+    s_sizes = new SizeManager((BitMode)options.programBitMode);
 
     const std::vector<Token> tokens = Scanner(s_source).scan();
 

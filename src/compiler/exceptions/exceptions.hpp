@@ -8,6 +8,9 @@
 
 
 
+enum class BitMode;
+
+
 ScannerException torque_e1000(const TokenPosition& position) noexcept;
 ScannerException torque_e1001(const TokenPosition& position) noexcept;
 
@@ -36,13 +39,16 @@ CompilerException torque_e3002(const TokenPosition& position) noexcept;
 CompilerException torque_e3003(const TokenPosition& position) noexcept;
 CompilerException torque_e3004(const TokenPosition& position) noexcept;
 CompilerException torque_e3005(const TokenPosition& position) noexcept;
+CompilerException torque_e3006(const TokenPosition& position) noexcept;
 
 
 
 InternalException internal_e0000(const std::string& info = "") noexcept;
 InternalException internal_e0000_nullptr() noexcept;
 InternalException internal_e0000_argument() noexcept;
+
 InternalException internal_e0001() noexcept;
 InternalException internal_e0002() noexcept;
 InternalException internal_e0003() noexcept;
 InternalException internal_e0004(const std::string& entryPoint) noexcept;
+InternalException internal_e0005(BitMode bitMode) noexcept;

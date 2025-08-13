@@ -4,6 +4,9 @@
 
 
 
+enum class TypeSize;
+
+
 class LiteralExpression;
 class BinaryExpression;
 class GroupingExpression;
@@ -29,7 +32,11 @@ class Expression
 {
 public:
     virtual void process(ExpressionProcessor& processor) const = 0;
+    
+    
     virtual const Token& source() const noexcept = 0;
+
+    virtual TypeSize resultType() const noexcept = 0;
 };
 
 
@@ -47,6 +54,8 @@ public:
     
 
     const Token& source() const noexcept override;
+
+    TypeSize resultType() const noexcept override;
 };
 
 
@@ -66,6 +75,8 @@ public:
 
 
     const Token& source() const noexcept override;
+
+    TypeSize resultType() const noexcept override;
 };
 
 
@@ -83,6 +94,8 @@ public:
 
 
     const Token& source() const noexcept override;
+
+    TypeSize resultType() const noexcept override;
 };
 
 
@@ -100,6 +113,8 @@ public:
 
 
     const Token& source() const noexcept override;
+
+    TypeSize resultType() const noexcept override;
 };
 
 
@@ -120,6 +135,8 @@ public:
 
 
     const Token& source() const noexcept override;
+
+    TypeSize resultType() const noexcept override;
 };
 
 
@@ -140,4 +157,6 @@ public:
 
 
     const Token& source() const noexcept override;
+
+    TypeSize resultType() const noexcept override;
 };

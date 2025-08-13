@@ -48,6 +48,8 @@ private:
 
     static TorqueOptions s_options;
 
+    static SizeManager* s_sizes;
+
 
 public:
     Torque() = delete;
@@ -59,6 +61,8 @@ public:
     static const std::vector<std::string> sourceAsLines() noexcept;
 
     static const TorqueOptions& options() noexcept;
+
+    static const SizeManager* sizes() noexcept;
 
 
     static void run(const TorqueOptions& options);

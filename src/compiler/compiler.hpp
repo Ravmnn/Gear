@@ -6,6 +6,7 @@
 #include <compiler/language/ast_printer.hpp>
 #include <compiler/program_scope.hpp>
 #include <compiler/registers.hpp>
+#include <compiler/type_checker.hpp>
 #include <compiler/sizes.hpp>
 
 
@@ -17,6 +18,9 @@ class InternalException;
 class Compiler : StatementProcessor, ExpressionProcessor
 {
 private:
+    friend class TypeChecker;
+
+
     AssemblyGenerator _asm;
 
     AssemblyGenerator _data;
@@ -28,6 +32,7 @@ private:
     ASTPrinter _astPrinter;
 
     RegisterManager _registers;
+    TypeChecker _typeChecker;
 
     ProgramScope _scope;
     IdentifierManager& _scopeLocal;
@@ -54,9 +59,6 @@ private:
 
 public:
     static const std::string startLabelName;
-
-    static const TypeSize defaultTypeSize;
-    static const ASMTypeSize asmDefaultTypeSize;
 
     static const std::string stackPointerRegister;
     static const std::string stackFrameRegister;
@@ -164,9 +166,6 @@ private:
 
     Register& getValueOfExpression(const Expression& expression);
     Register& getValue();
-
-
-    static TypeSize stringToTypeSize(const std::string& type);
 
 
     static void throwIfAnyNullStatement(const std::vector<const Statement*>& statements);

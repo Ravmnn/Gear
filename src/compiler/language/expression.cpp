@@ -1,5 +1,9 @@
 #include <compiler/language/expression.hpp>
 
+#include <torque.hpp>
+#include <compiler/sizes.hpp>
+#include <compiler/type_checker.hpp>
+
 
 
 LiteralExpression::LiteralExpression(const Token& value) noexcept
@@ -13,9 +17,16 @@ void LiteralExpression::process(ExpressionProcessor& processor) const
 }
 
 
+
 const Token& LiteralExpression::source() const noexcept
 {
     return value;
+}
+
+
+TypeSize LiteralExpression::resultType() const noexcept
+{
+    return Torque::sizes()->defaultTypeSize();
 }
 
 
@@ -33,9 +44,16 @@ void BinaryExpression::process(ExpressionProcessor& processor) const
 }
 
 
+
 const Token& BinaryExpression::source() const noexcept
 {
     return op;
+}
+
+
+TypeSize BinaryExpression::resultType() const noexcept
+{
+    return left->resultType();
 }
 
 
@@ -53,9 +71,16 @@ void GroupingExpression::process(ExpressionProcessor& processor) const
 }
 
 
+
 const Token& GroupingExpression::source() const noexcept
 {
     return expression->source();
+}
+
+
+TypeSize GroupingExpression::resultType() const noexcept
+{
+    return expression->resultType();
 }
 
 
@@ -73,9 +98,16 @@ void IdentifierExpression::process(ExpressionProcessor& processor) const
 }
 
 
+
 const Token& IdentifierExpression::source() const noexcept
 {
     return identifier;
+}
+
+
+TypeSize IdentifierExpression::resultType() const noexcept
+{
+    return TypeSize::None;
 }
 
 
@@ -93,9 +125,16 @@ void CallExpression::process(ExpressionProcessor& processor) const
 }
 
 
+
 const Token& CallExpression::source() const noexcept
 {
     return parenLeft;
+}
+
+
+TypeSize CallExpression::resultType() const noexcept
+{
+    return TypeSize::None;
 }
 
 
@@ -113,7 +152,14 @@ void CastExpression::process(ExpressionProcessor& processor) const
 }
 
 
+
 const Token& CastExpression::source() const noexcept
 {
     return keyword;
+}
+
+
+TypeSize CastExpression::resultType() const noexcept
+{
+    return TypeChecker::stringToTypeSize(type.lexeme);
 }
